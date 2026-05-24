@@ -22,6 +22,6 @@ public class Local {
     private String addres2;
     private String zipCode;
 
-    @OneToMany(mappedBy = "local")
+    @OneToMany(mappedBy = "local", cascade = CascadeType.ALL)
     private java.util.Set<User> users;
 }

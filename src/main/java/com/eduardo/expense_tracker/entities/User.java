@@ -31,6 +31,6 @@ public class User {
     @JoinColumn(name = "user_id")
     private Local local;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<ContaBancaria> contas;
 }
