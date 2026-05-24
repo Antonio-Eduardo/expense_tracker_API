@@ -32,5 +32,5 @@ public class User {
     private Local local;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<ContaBancaria> contas;
+    private Set<BankAccount> contas;
 }
