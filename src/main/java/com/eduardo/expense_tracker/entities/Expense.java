@@ -24,7 +24,7 @@ public class Expense {
     private Instant expenseMoment;
 
     @ManyToOne
-    @JoinColumn(name = "gasto_mensal_id")
+    @JoinColumn(name = "monthly_expense_id")
     private MonthlyExpense monthlyExpense;
 
     @ManyToOne

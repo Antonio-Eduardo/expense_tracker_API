@@ -18,7 +18,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long iD;
+    private Long id;
 
     private String name;
     private String email;
@@ -28,9 +28,9 @@ public class User {
     private Instant birthDate;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Local local;
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<BankAccount> contas;
+    private Set<BankAccount> accounts;
 }

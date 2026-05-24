@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tb_local")
+@Table(name = "tb_location")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Local {
+public class Location {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,10 +18,10 @@ public class Local {
 
     private String city;
     private String state;
-    private String addres1;
-    private String addres2;
+    private String address1;
+    private String address2;
     private String zipCode;
 
-    @OneToMany(mappedBy = "local", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private java.util.Set<User> users;
 }

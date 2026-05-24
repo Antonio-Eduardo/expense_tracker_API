@@ -18,7 +18,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private BigDecimal expenseLimit;
+    private BigDecimal notifyLimit;
     private String name;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
