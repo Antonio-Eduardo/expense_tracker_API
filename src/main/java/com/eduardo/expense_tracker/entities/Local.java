@@ -22,7 +22,6 @@ public class Local {
     private String addres2;
     private String zipCode;
 
-    @OneToMany
-    @JoinColumn(name = "local_id")
+    @OneToMany(mappedBy = "local")
     private java.util.Set<User> users;
 }
