@@ -31,11 +31,12 @@ public class LocationService {
         locationFind.setAddress2(obj.getAddress2());
         locationFind.setZipCode(obj.getZipCode());
      }
-     public void LocationUpdate(Long id, Location obj) {
+     public Location locationUpdate(Long id, Location obj) {
          Location locationFind = repository.findById(id).orElse(null);
          if (locationFind != null) {
              updateData(locationFind, obj);
-             repository.save(locationFind);
+              return repository.save(locationFind);
          }
+         return null;
      }
 }

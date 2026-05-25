@@ -20,8 +20,8 @@ public class ExpenseService {
     private MonthlyExpenseRepository monthlyExpenseRepository;
 
 
-    public void insertExpense(Expense expense){
-            repository.save(expense);
+    public Expense insertExpense(Expense expense){
+           return repository.save(expense);
     }
      public Expense findExpenseById(Long id){
          return repository.findById(id).orElse(null);
