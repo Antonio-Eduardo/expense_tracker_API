@@ -3,9 +3,11 @@ package com.eduardo.expense_tracker.services;
 import com.eduardo.expense_tracker.entities.User;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class UserService {
 
     @Autowired
