@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class MonthlyExpense {
 
     private BigDecimal limitExpense;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "bank_account_id")
     private BankAccount bankAccount;
