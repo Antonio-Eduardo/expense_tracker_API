@@ -30,4 +30,10 @@ public class MonthlyExpense {
 
     @OneToMany(mappedBy = "monthlyExpense", cascade = CascadeType.ALL)
     private Set<Expense> expenses;
+
+    public void addExpense(Expense expense) {
+        expenses.add(expense);
+        monthTotal = monthTotal.add(expense.getAmount());
+        limitExpense = limitExpense.subtract(expense.getAmount());
+    }
 }
