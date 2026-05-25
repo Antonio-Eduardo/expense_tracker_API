@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class Location {
     private String address2;
     private String zipCode;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private java.util.Set<User> users;
 

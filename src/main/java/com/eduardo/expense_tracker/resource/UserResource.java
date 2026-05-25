@@ -4,10 +4,10 @@ import com.eduardo.expense_tracker.entities.User;
 import com.eduardo.expense_tracker.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -22,20 +22,21 @@ public class UserResource {
         return ResponseEntity.ok().body(userService.userFindAll());
     }
     @GetMapping(value = "/{id}")
-    public ResponseEntity<User> findById(Long id){
+    public ResponseEntity<User> findById(@PathVariable Long id){
         return ResponseEntity.ok().body(userService.userFindById(id));
     }
-    @GetMapping(value = "/insert")
-    public ResponseEntity<User> insertUser(User user) {
-        return ResponseEntity.ok().body(userService.insertUser(user));
+    @PostMapping(value = "/insert")
+    public ResponseEntity<User> insertUser(@RequestBody User user) {
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId()).toUri();
+        return ResponseEntity.created(uri).body(userService.insertUser(user));
     }
-    @GetMapping(value = "/delete/{id}")
-    public ResponseEntity<Void> deleteUser(Long id) {
+    @DeleteMapping(value = "/delete/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping(value = "/update/{id}")
-    public ResponseEntity<User> updateUser(Long id, User user) {
+    @PutMapping(value = "/update/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         return ResponseEntity.ok().body(userService.updateUser(id, user));
     }
 }

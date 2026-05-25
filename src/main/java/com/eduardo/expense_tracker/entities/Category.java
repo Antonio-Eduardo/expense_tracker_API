@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Category {
     private BigDecimal notifyLimit;
     private String name;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private java.util.Set<Expense> expenses;
 

@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class Expense {
     private String description;
     private Instant expenseMoment;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "monthly_expense_id")
     private MonthlyExpense monthlyExpense;
