@@ -11,7 +11,7 @@ import java.util.List;
 public class BankAccountService {
 
     @Autowired
-    BankAccountRepository repository;
+    private BankAccountRepository repository;
 
     public BankAccount insertBankAccount(BankAccount bankAccount){
         return repository.save(bankAccount);
