@@ -34,10 +34,11 @@ public class ExpenseService {
      }
      public void processExpense(Expense expense) {
          MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpense().getId()).orElseThrow(() -> new ResourceNotFind("Monthly Expense not found with id: " + expense.getMonthlyExpense().getId()));
-             BigDecimal newTotal = monthlyExpense.getMonthTotal().add(expense.getAmount());
-             monthlyExpense.setMonthTotal(newTotal);
-             monthlyExpense.addExpense(expense);
-             monthlyExpense.setLimitExpense(monthlyExpense.getLimitExpense().subtract(expense.getAmount()));
+             BigDecimal updateTotal = monthlyExpense.getMonthTotal().add(expense.getAmount());
+             monthlyExpense.setMonthTotal(updateTotal);
+
+             BigDecimal updateLimit = monthlyExpense.getLimitExpense().subtract(expense.getAmount());
+             monthlyExpense.setLimitExpense(updateLimit);
              monthlyExpenseRepository.save(monthlyExpense);
      }
 }

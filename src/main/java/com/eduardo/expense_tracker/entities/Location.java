@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "tb_location")
 @Data
@@ -24,4 +26,15 @@ public class Location {
 
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private java.util.Set<User> users;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Location location)) return false;
+        return Objects.equals(id, location.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

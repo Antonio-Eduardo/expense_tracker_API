@@ -1,7 +1,6 @@
 package com.eduardo.expense_tracker;
 
-import com.eduardo.expense_tracker.entities.Location;
-import com.eduardo.expense_tracker.entities.User;
+import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.repositories.*;
 import com.eduardo.expense_tracker.services.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,8 +57,63 @@ class ExpenseTrackerApplicationTests {
 		userRepository.deleteAll();
 	}
 	@Test
-	void deveriaCriarUser() {
+	void deveriaDescontarDoMensalEBanco() {
+		Category category = new Category();
+		category.setName("Alimentação");
+		category.setNotifyLimit(new BigDecimal(200));
+		categoryServices.insertCategory(category);
 
+		Location location = new Location();
+		location.setCity("São Paulo");
+		location.setState("SP");
+		location.setAddress1("Rua A, 123");
+		location.setAddress2("Apto 45");
+		location.setZipCode("12345-678");
+		locationService.insertLocation(location);
+
+		User user = new User();
+		user.setName("Eduardo");
+		user.setEmail("eduardo@gmail.com");
+		user.setPassword("123456");
+		user.setCpf("12345678900");
+		user.setPhone("11999999999");
+		user.setBirthDate(LocalDate.parse("2003-06-18"));
+		user.setLocation(location);
+		userService.insertUser(user);
+
+		BankAccount bankAccount = new BankAccount();
+		bankAccount.setBalance(new BigDecimal(1000));
+		bankAccount.setTypeAccount("Caixa");
+		bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T00:00:00Z"));
+		bankAccount.setUser(user);
+		bankAccountService.insertBankAccount(bankAccount);
+
+		MonthlyExpense monthlyExpense = new MonthlyExpense();
+		monthlyExpense.setMonthTotal(new BigDecimal(0));
+		monthlyExpense.setMonth("Maio");
+		monthlyExpense.setLimitExpense(new BigDecimal(500));
+		monthlyExpense.setBankAccount(bankAccount);
+		monthlyExpenseService.insertMonthlyExpense(monthlyExpense);
+
+		Expense expense = new Expense();
+		expense.setAmount(new BigDecimal(100));
+		expense.setDescription("Compra no supermercado");
+		expense.setExpenseMoment(Instant.now());
+		expense.setMonthlyExpense(monthlyExpense);
+		expense.setCategory(category);
+		expenseService.insertExpense(expense);
+		expenseService.processExpense(expense);
+
+		Expense expense1 = new Expense();
+		expense1.setAmount(new BigDecimal(150));
+		expense1.setDescription("Compra no mercado");
+		expense1.setExpenseMoment(Instant.now());
+		expense1.setMonthlyExpense(monthlyExpense);
+		expense1.setCategory(category);
+		expenseService.insertExpense(expense1);
+		expenseService.processExpense(expense1);
+
+		monthlyExpenseService.processMonthlyExpense(monthlyExpense);
 	}
 
 }

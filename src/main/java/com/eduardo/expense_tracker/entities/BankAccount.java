@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -30,4 +31,15 @@ public class BankAccount {
 
     @OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL)
     private Set<MonthlyExpense> monthlyExpense;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof BankAccount that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

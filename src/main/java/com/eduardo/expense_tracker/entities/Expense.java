@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
 @Table(name = "tb_expense")
@@ -30,4 +31,15 @@ public class Expense {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Expense expense)) return false;
+        return Objects.equals(id, expense.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

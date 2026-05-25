@@ -2,6 +2,7 @@ package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,10 +31,8 @@ public class BankAccountService {
         bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
     }
     public void updateBankAccount(Long id, BankAccount obj){
-        BankAccount bankAccountFind = repository.findById(id).orElse(null);
-        if (bankAccountFind != null) {
+        BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFind("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);
             repository.save(bankAccountFind);
-        }
     }
 }

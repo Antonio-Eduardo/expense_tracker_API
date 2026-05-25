@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -20,7 +21,7 @@ public class MonthlyExpense {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private BigDecimal monthTotal;
-    private Instant month;
+    private String month;
 
     private BigDecimal limitExpense;
 
@@ -31,9 +32,14 @@ public class MonthlyExpense {
     @OneToMany(mappedBy = "monthlyExpense", cascade = CascadeType.ALL)
     private Set<Expense> expenses;
 
-    public void addExpense(Expense expense) {
-        expenses.add(expense);
-        monthTotal = monthTotal.add(expense.getAmount());
-        limitExpense = limitExpense.subtract(expense.getAmount());
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof MonthlyExpense that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

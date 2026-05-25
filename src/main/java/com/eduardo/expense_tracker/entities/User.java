@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -25,7 +25,7 @@ public class User {
     private String password;
     private String cpf;
     private String phone;
-    private Instant birthDate;
+    private LocalDate birthDate;
 
     @ManyToOne
     @JoinColumn(name = "location_id")
@@ -33,4 +33,15 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<BankAccount> accounts;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
