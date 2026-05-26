@@ -24,7 +24,6 @@ public class Expense {
 
     private BigDecimal amount;
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Fortaleza")
     private Instant expenseMoment;
 
     @JsonIgnore
