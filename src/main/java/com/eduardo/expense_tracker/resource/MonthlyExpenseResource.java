@@ -1,11 +1,14 @@
 package com.eduardo.expense_tracker.resource;
 
+import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.services.MonthlyExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -25,8 +28,10 @@ public class MonthlyExpenseResource {
         return ResponseEntity.ok().body(monthlyExpenseService.findMonthlyExpenseById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<MonthlyExpense> insertMonthlyExpense(@RequestBody MonthlyExpense monthlyExpense) {
-        return ResponseEntity.ok().body(monthlyExpenseService.insertMonthlyExpense(monthlyExpense));
+    public ResponseEntity<MonthlyExpense> insertMonthlyExpense(@RequestBody MonthlyExpenseDTO monthlyExpenseDTO) {
+        MonthlyExpense monthlyExpense = monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(monthlyExpense.getId()).toUri();
+        return ResponseEntity.created(uri).body(monthlyExpense);
     }
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<MonthlyExpense> updateMonthlyExpense(@PathVariable Long id, @RequestBody MonthlyExpense monthlyExpense) {

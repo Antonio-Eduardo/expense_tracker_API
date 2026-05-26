@@ -1,11 +1,14 @@
 package com.eduardo.expense_tracker.resource;
 
+import com.eduardo.expense_tracker.dtos.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.services.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -25,8 +28,10 @@ public class ExpenseResource {
         return ResponseEntity.ok().body(expenseService.findExpenseById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<Expense> insertExpense(@RequestBody Expense expense) {
-        return ResponseEntity.ok().body(expenseService.insertExpense(expense));
+    public ResponseEntity<Expense> insertExpense(@RequestBody ExpenseDTO expenseDTO) {
+        Expense expense = expenseService.insertExpense(expenseDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(expense.getId()).toUri();
+        return ResponseEntity.created(uri).body(expense);
     }
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {

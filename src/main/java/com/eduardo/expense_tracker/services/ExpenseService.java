@@ -1,7 +1,10 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.ExpenseDTO;
+import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.CategoryRepository;
 import com.eduardo.expense_tracker.repositories.ExpenseRepository;
 import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
@@ -9,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -18,11 +22,25 @@ public class ExpenseService {
     private ExpenseRepository repository;
     @Autowired
     private MonthlyExpenseRepository monthlyExpenseRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
 
-    public Expense insertExpense(Expense expense){
-           return repository.save(expense);
+    public Expense insertExpense(ExpenseDTO expense){
+        Expense expenseDB = new Expense();
+        MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpenseId())
+                .orElseThrow(() -> new ResourceNotFind("Monthly Expense not found with id: " + expense.getMonthlyExpenseId()));
+        Category category = categoryRepository.findById(expense.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFind("Category not found with id: " + expense.getCategoryId()));
+        expenseDB.setAmount(expense.getAmount());
+        expenseDB.setDescription(expense.getDescription());
+        expenseDB.setExpenseMoment(Instant.now());
+        expenseDB.setMonthlyExpense(monthlyExpense);
+        expenseDB.setCategory(category);
+        return repository.save(expenseDB);
     }
+
+
      public Expense findExpenseById(Long id){
          return repository.findById(id).orElse(null);
      }

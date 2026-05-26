@@ -1,6 +1,8 @@
 package com.eduardo.expense_tracker;
 
 import com.eduardo.expense_tracker.dtos.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.ExpenseDTO;
+import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.repositories.*;
@@ -92,29 +94,32 @@ class ExpenseTrackerApplicationTests {
 		bankAccountService.insertBankAccount(bankAccount);
 		BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
 
-		MonthlyExpense monthlyExpense = new MonthlyExpense();
-		monthlyExpense.setMonthTotal(new BigDecimal(0));
-		monthlyExpense.setMonth("Maio");
-		monthlyExpense.setLimitExpense(new BigDecimal(500));
-		monthlyExpense.setBankAccount(bankAccountDB);
-		monthlyExpenseService.insertMonthlyExpense(monthlyExpense);
+		MonthlyExpenseDTO monthlyExpenseDTO = new MonthlyExpenseDTO();
+		monthlyExpenseDTO.setMonthTotal(new BigDecimal(0));
+		monthlyExpenseDTO.setMonth("Maio");
+		monthlyExpenseDTO.setLimitExpense(new BigDecimal(500));
+		monthlyExpenseDTO.setBankAccountId(bankAccountDB.getId());
+		monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
+		MonthlyExpense monthlyExpense = monthlyExpenseService.findMonthlyExpenseById(1L);
 
-		Expense expense = new Expense();
-		expense.setAmount(new BigDecimal(100));
-		expense.setDescription("Compra no supermercado");
-		expense.setExpenseMoment(Instant.now());
-		expense.setMonthlyExpense(monthlyExpense);
-		expense.setCategory(category);
-		expenseService.insertExpense(expense);
+		ExpenseDTO expenseDTO = new ExpenseDTO();
+		expenseDTO.setAmount(new BigDecimal(100));
+		expenseDTO.setDescription("Compra no supermercado");
+		expenseDTO.setExpenseMoment(Instant.now());
+		expenseDTO.setMonthlyExpenseId(monthlyExpense.getId());
+		expenseDTO.setCategoryId(category.getId());
+		expenseService.insertExpense(expenseDTO);
+		Expense expense = expenseService.findExpenseById(1L);
 		expenseService.processExpense(expense);
 
-		Expense expense1 = new Expense();
-		expense1.setAmount(new BigDecimal(150));
-		expense1.setDescription("Compra no mercado");
-		expense1.setExpenseMoment(Instant.now());
-		expense1.setMonthlyExpense(monthlyExpense);
-		expense1.setCategory(category);
-		expenseService.insertExpense(expense1);
+		ExpenseDTO expenseDTO1 = new ExpenseDTO();
+		expenseDTO1.setAmount(new BigDecimal(150));
+		expenseDTO1.setDescription("Compra no mercado");
+		expenseDTO1.setExpenseMoment(Instant.now());
+		expenseDTO1.setMonthlyExpenseId(monthlyExpense.getId());
+		expenseDTO1.setCategoryId(category.getId());
+		expenseService.insertExpense(expenseDTO1);
+		Expense expense1 = expenseService.findExpenseById(2L);
 		expenseService.processExpense(expense1);
 
 		monthlyExpenseService.processMonthlyExpense(monthlyExpense);

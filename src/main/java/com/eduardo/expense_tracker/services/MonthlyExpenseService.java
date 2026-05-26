@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
@@ -19,9 +20,17 @@ public class MonthlyExpenseService {
     @Autowired
     BankAccountRepository bankAccountRepository;
 
-    public MonthlyExpense insertMonthlyExpense(MonthlyExpense monthlyExpense){
-        return repository.save(monthlyExpense);
+    public MonthlyExpense insertMonthlyExpense(MonthlyExpenseDTO monthlyExpenseDTO){
+        MonthlyExpense monthlyExpenseDB = new MonthlyExpense();
+        BankAccount bankAccount = bankAccountRepository.findById(monthlyExpenseDTO.getBankAccountId())
+                .orElseThrow(() -> new ResourceNotFind("Bank Account not found with id: " + monthlyExpenseDTO.getBankAccountId()));
+        monthlyExpenseDB.setLimitExpense(monthlyExpenseDTO.getLimitExpense());
+        monthlyExpenseDB.setBankAccount(bankAccount);
+        monthlyExpenseDB.setMonthTotal(monthlyExpenseDTO.getMonthTotal());
+        monthlyExpenseDB.setMonth(monthlyExpenseDTO.getMonth());
+        return repository.save(monthlyExpenseDB);
     }
+
     public MonthlyExpense findMonthlyExpenseById(Long id){
         return repository.findById(id).orElse(null);
     }

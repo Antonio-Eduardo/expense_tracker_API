@@ -26,7 +26,6 @@ public class BankAccount {
     private String typeAccount;
     private Instant creditCardClosingDate;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
