@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.resource;
 
+import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.User;
 import com.eduardo.expense_tracker.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,10 @@ public class UserResource {
         return ResponseEntity.ok().body(userService.userFindById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<User> insertUser(@RequestBody User user) {
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId()).toUri();
-        return ResponseEntity.created(uri).body(userService.insertUser(user));
+    public ResponseEntity<User> insertUser(@RequestBody UserDTO user) {
+        User savedUser = userService.insertUser(user);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
+        return ResponseEntity.created(uri).body(savedUser);
     }
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {

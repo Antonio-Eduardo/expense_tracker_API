@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class Expense {
 
     private BigDecimal amount;
     private String description;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Fortaleza")
     private Instant expenseMoment;
 
     @JsonIgnore

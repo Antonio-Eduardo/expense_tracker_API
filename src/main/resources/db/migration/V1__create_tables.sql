@@ -1,10 +1,10 @@
 CREATE TABLE tb_location(
-                            id BIGSERIAL PRIMARY KEY,
-                            city VARCHAR (30) NOT NULL,
-                            state VARCHAR (30) NOT NULL,
-                            address1 VARCHAR(50) NOT NULL,
-                            address2 VARCHAR(50) NOT NULL,
-                            zip_code VARCHAR(8) NOT NULL
+    id BIGSERIAL PRIMARY KEY,
+    city VARCHAR (30) NOT NULL,
+    state VARCHAR (30) NOT NULL,
+    address1 VARCHAR(50) NOT NULL,
+     address2 VARCHAR(50) NOT NULL,
+     zip_code VARCHAR(11) NOT NULL
 );
 CREATE TABLE tb_user(
     id BIGSERIAL PRIMARY KEY ,
@@ -13,7 +13,7 @@ CREATE TABLE tb_user(
     password VARCHAR(255) NOT NULL,
     cpf VARCHAR(11) NOT NULL UNIQUE,
     phone VARCHAR(11) NOT NULL,
-    birth_date TIMESTAMP,
+    birth_date DATE,
     location_id BIGINT NOT NULL REFERENCES tb_location(id) ON DELETE CASCADE
 );
 CREATE TABLE tb_bank_account(
@@ -31,7 +31,7 @@ CREATE TABLE tb_category(
 CREATE TABLE tb_monthly_expense(
     id BIGSERIAL PRIMARY KEY,
     month_total NUMERIC(19,2) NOT NULL,
-    month TIMESTAMP,
+    month VARCHAR(255) NOT NULL,
     limit_expense NUMERIC (19,2) NOT NULL,
     bank_account_id BIGINT NOT NULL REFERENCES tb_bank_account(id) ON DELETE CASCADE
 );

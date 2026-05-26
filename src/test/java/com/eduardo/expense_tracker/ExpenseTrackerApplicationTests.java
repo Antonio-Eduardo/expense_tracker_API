@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker;
 
+import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.repositories.*;
 import com.eduardo.expense_tracker.services.*;
@@ -71,15 +72,16 @@ class ExpenseTrackerApplicationTests {
 		location.setZipCode("12345-678");
 		locationService.insertLocation(location);
 
-		User user = new User();
-		user.setName("Eduardo");
-		user.setEmail("eduardo@gmail.com");
-		user.setPassword("123456");
-		user.setCpf("12345678900");
-		user.setPhone("11999999999");
-		user.setBirthDate(LocalDate.parse("2003-06-18"));
-		user.setLocation(location);
-		userService.insertUser(user);
+		UserDTO userDTO = new UserDTO();
+		userDTO.setName("Eduardo");
+		userDTO.setEmail("eduardo@gmail.com");
+		userDTO.setPassword("123456");
+		userDTO.setCpf("12345678900");
+		userDTO.setPhone("11999999999");
+		userDTO.setBirthDate(LocalDate.parse("2003-06-18"));
+		userDTO.setLocationId(location.getId());
+		userService.insertUser(userDTO);
+		User user = userService.userFindById(1L);
 
 		BankAccount bankAccount = new BankAccount();
 		bankAccount.setBalance(new BigDecimal(1000));
