@@ -1,7 +1,10 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,8 +17,18 @@ public class BankAccountService {
     @Autowired
     private BankAccountRepository repository;
 
-    public BankAccount insertBankAccount(BankAccount bankAccount){
-        return repository.save(bankAccount);
+    @Autowired
+    private UserRepository userRepository;
+
+    public BankAccount insertBankAccount(BankAccountDTO bankAccount){
+        BankAccount bankAccountDB = new BankAccount();
+        User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFind("User not found with id: " + bankAccount.getUserId()));
+        bankAccountDB.setTypeAccount(bankAccount.getTypeAccount());
+        bankAccountDB.setCreditCardClosingDate(bankAccount.getCreditCardClosingDate());
+        bankAccountDB.setBalance(bankAccount.getBalance());
+        bankAccountDB.setUser(user);
+
+        return repository.save(bankAccountDB);
     }
     public BankAccount findBankAccountById(Long id){
         return repository.findById(id).orElse(null);

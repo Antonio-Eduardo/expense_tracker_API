@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.resource;
 
+import com.eduardo.expense_tracker.dtos.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.services.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,10 @@ public class BankAcccountResource {
         return ResponseEntity.ok().body(service.findBankAccountById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<BankAccount> insertBankAccount(@RequestBody BankAccount bankAccount) {
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(bankAccount.getId()).toUri();
-        return ResponseEntity.created(uri).body(service.insertBankAccount(bankAccount));
+    public ResponseEntity<BankAccount> insertBankAccount(@RequestBody BankAccountDTO bankAccount) {
+        BankAccount savedBankAccount = service.insertBankAccount(bankAccount);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedBankAccount.getId()).toUri();
+        return ResponseEntity.created(uri).body(savedBankAccount);
     }
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<Void> deleteBankAccount(@PathVariable Long id) {

@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker;
 
+import com.eduardo.expense_tracker.dtos.BankAccountDTO;
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.repositories.*;
@@ -83,18 +84,19 @@ class ExpenseTrackerApplicationTests {
 		userService.insertUser(userDTO);
 		User user = userService.userFindById(1L);
 
-		BankAccount bankAccount = new BankAccount();
+		BankAccountDTO bankAccount = new BankAccountDTO();
 		bankAccount.setBalance(new BigDecimal(1000));
 		bankAccount.setTypeAccount("Caixa");
 		bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T00:00:00Z"));
-		bankAccount.setUser(user);
+		bankAccount.setUserId(user.getId());
 		bankAccountService.insertBankAccount(bankAccount);
+		BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
 
 		MonthlyExpense monthlyExpense = new MonthlyExpense();
 		monthlyExpense.setMonthTotal(new BigDecimal(0));
 		monthlyExpense.setMonth("Maio");
 		monthlyExpense.setLimitExpense(new BigDecimal(500));
-		monthlyExpense.setBankAccount(bankAccount);
+		monthlyExpense.setBankAccount(bankAccountDB);
 		monthlyExpenseService.insertMonthlyExpense(monthlyExpense);
 
 		Expense expense = new Expense();
