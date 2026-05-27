@@ -33,6 +33,8 @@ As principais funcionalidades já implementadas incluem:
 - Contas bancárias associadas a cada usuário
 - Registro de despesas agrupadas por mês (`MonthlyExpense`)
 - Categorização de gastos com limite de notificação por categoria
+- Controllers REST completos para todos os recursos (User, BankAccount, Category, MonthlyExpense, Expense, Location)
+- DTOs para desacoplamento entre camada de transporte e entidades
 - Processamento de despesas: atualiza automaticamente o total mensal e o saldo da conta bancária
 - Dados iniciais carregados automaticamente via `CommandLineRunner`
 - Testes de integração com banco PostgreSQL real (Testcontainers)
@@ -62,8 +64,13 @@ src/
 ├── main/
 │   └── java/com/eduardo/expense_tracker/
 │       ├── configs/
-│       │   ├── InitialData.java       # Dados de seed via CommandLineRunner
-│       │   └── SecurityConfig.java    # Configuração do Spring Security
+│       │   ├── InitialData.java            # Dados de seed via CommandLineRunner
+│       │   └── SecurityConfig.java         # Configuração do Spring Security
+│       ├── dtos/
+│       │   ├── BankAccountDTO.java
+│       │   ├── ExpenseDTO.java
+│       │   ├── MonthlyExpenseDTO.java
+│       │   └── UserDTO.java
 │       ├── entities/
 │       │   ├── User.java
 │       │   ├── Location.java
@@ -79,7 +86,12 @@ src/
 │       │   ├── MonthlyExpenseRepository.java
 │       │   └── ExpenseRepository.java
 │       ├── resource/
-│       │   └── UserResource.java      # Endpoints REST de usuário
+│       │   ├── UserResource.java
+│       │   ├── BankAccountResource.java
+│       │   ├── CategoryResource.java
+│       │   ├── MonthlyExpenseResource.java
+│       │   ├── ExpenseResource.java
+│       │   └── LocationResource.java
 │       ├── services/
 │       │   ├── UserService.java
 │       │   ├── LocationService.java
@@ -131,11 +143,58 @@ Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──�
 |---|---|---|
 | GET | `/users` | Lista todos os usuários |
 | GET | `/users/{id}` | Busca usuário por ID |
-| POST | `/users/insert` | Cadastra novo usuário |
+| POST | `/users/insert` | Cadastra novo usuário (via `UserDTO`) |
 | PUT | `/users/update/{id}` | Atualiza nome, email e telefone |
 | DELETE | `/users/delete/{id}` | Remove usuário |
 
-> Os demais recursos (BankAccount, Category, MonthlyExpense, Expense, Location) possuem services e repositories implementados, mas ainda **não têm controllers REST expostos**.
+### Contas Bancárias — `/bank-account`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/bank-account` | Lista todas as contas |
+| GET | `/bank-account/{id}` | Busca conta por ID |
+| POST | `/bank-account/insert` | Cadastra nova conta (via `BankAccountDTO`) |
+| PUT | `/bank-account/update/{id}` | Atualiza tipo de conta e data de fechamento |
+| DELETE | `/bank-account/delete/{id}` | Remove conta |
+
+### Categorias — `/category`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/category` | Lista todas as categorias |
+| GET | `/category/{id}` | Busca categoria por ID |
+| POST | `/category/insert` | Cadastra nova categoria |
+| PUT | `/category/update/{id}` | Atualiza nome e limite de notificação |
+| DELETE | `/category/delete/{id}` | Remove categoria |
+
+### Despesas Mensais — `/month`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/month` | Lista todos os meses |
+| GET | `/month/{id}` | Busca mês por ID |
+| POST | `/month/insert` | Cadastra novo mês (via `MonthlyExpenseDTO`) |
+| PUT | `/month/update/{id}` | Atualiza limite de gasto |
+| DELETE | `/month/delete/{id}` | Remove mês |
+
+### Despesas — `/expense`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/expense` | Lista todas as despesas |
+| GET | `/expense/{id}` | Busca despesa por ID |
+| POST | `/expense/insert` | Cadastra nova despesa (via `ExpenseDTO`) |
+| DELETE | `/expense/delete/{id}` | Remove despesa |
+
+### Localizações — `/location`
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/location` | Lista todas as localizações |
+| GET | `/location/{id}` | Busca localização por ID |
+| POST | `/location/insert` | Cadastra nova localização |
+| PUT | `/location/update/{id}` | Atualiza dados da localização |
+| DELETE | `/location/delete/{id}` | Remove localização |
 
 ---
 
@@ -202,11 +261,10 @@ mvn test
 
 ## Melhorias Futuras
 
-- [ ] Controllers REST para BankAccount, Category, MonthlyExpense, Expense e Location
-- [ ] DTOs para evitar exposição direta das entidades
 - [ ] Tratamento global de exceções (`@ControllerAdvice`)
 - [ ] Validação de entrada com Spring Validation (`@Valid`)
 - [ ] Autenticação com Spring Security + JWT
 - [ ] Flyway para versionamento do schema do banco
 - [ ] Documentação com Swagger / OpenAPI
 - [ ] Notificação ao atingir limite de categoria
+- [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
