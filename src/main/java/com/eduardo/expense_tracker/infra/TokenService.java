@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.infra.security;
+package com.eduardo.expense_tracker.infra;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

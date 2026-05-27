@@ -4,7 +4,7 @@ import com.eduardo.expense_tracker.dtos.AuthenticationDTO;
 import com.eduardo.expense_tracker.dtos.LoginResponseDTO;
 import com.eduardo.expense_tracker.dtos.RegisterDTO;
 import com.eduardo.expense_tracker.entities.user.User;
-import com.eduardo.expense_tracker.infra.security.TokenService;
+import com.eduardo.expense_tracker.infra.TokenService;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
