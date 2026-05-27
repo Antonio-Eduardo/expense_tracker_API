@@ -8,13 +8,14 @@ CREATE TABLE tb_location(
 );
 CREATE TABLE tb_user(
     id BIGSERIAL PRIMARY KEY ,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    cpf VARCHAR(11) NOT NULL UNIQUE,
-    phone VARCHAR(11) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    cpf VARCHAR(11) UNIQUE,
+    phone VARCHAR(20) UNIQUE ,
     birth_date DATE,
-    location_id BIGINT NOT NULL REFERENCES tb_location(id) ON DELETE CASCADE
+    location_id BIGINT REFERENCES tb_location(id) ON DELETE CASCADE
 );
 CREATE TABLE tb_bank_account(
     id BIGSERIAL PRIMARY KEY,

@@ -2,7 +2,7 @@ package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
-import com.eduardo.expense_tracker.entities.User;
+import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;

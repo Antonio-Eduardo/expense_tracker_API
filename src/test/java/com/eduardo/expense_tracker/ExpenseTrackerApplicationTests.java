@@ -5,6 +5,7 @@ import com.eduardo.expense_tracker.dtos.ExpenseDTO;
 import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.*;
+import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.*;
 import com.eduardo.expense_tracker.services.*;
 import org.junit.jupiter.api.BeforeEach;

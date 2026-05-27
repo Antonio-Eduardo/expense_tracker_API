@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.dtos;
 
+import com.eduardo.expense_tracker.entities.Location;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ public class UserDTO {
     public String name;
     public String email;
     public String password;
+    public String role;
     public String cpf;
     public String phone;
     public LocalDate birthDate;

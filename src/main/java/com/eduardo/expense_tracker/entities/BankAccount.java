@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.eduardo.expense_tracker.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

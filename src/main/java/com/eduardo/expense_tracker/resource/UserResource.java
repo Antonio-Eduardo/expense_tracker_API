@@ -1,7 +1,7 @@
 package com.eduardo.expense_tracker.resource;
 
 import com.eduardo.expense_tracker.dtos.UserDTO;
-import com.eduardo.expense_tracker.entities.User;
+import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +26,13 @@ public class UserResource {
     public ResponseEntity<User> findById(@PathVariable Long id){
         return ResponseEntity.ok().body(userService.userFindById(id));
     }
-    @PostMapping(value = "/insert")
-    public ResponseEntity<User> insertUser(@RequestBody UserDTO user) {
-        User savedUser = userService.insertUser(user);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getId()).toUri();
-        return ResponseEntity.created(uri).body(savedUser);
-    }
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTO user) {
         return ResponseEntity.ok().body(userService.updateUser(id, user));
     }
 }
