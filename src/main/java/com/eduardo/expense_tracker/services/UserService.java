@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.RegisterDTO;
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.entities.user.User;
@@ -31,6 +32,7 @@ public class UserService {
         repository.deleteById(id);
     }
      public User updateUser(Long id, UserDTO obj){
+
          User userFind = repository.findById(id).orElse(null);
          if (userFind != null) {
              updateData(userFind, obj);
@@ -57,4 +59,14 @@ public class UserService {
             userFind.setBirthDate(obj.getBirthDate());
         }
      }
+    public User createUser(RegisterDTO data) {
+        User user = new User();
+        user.setEmail(data.email());
+        user.setPassword(data.password());
+        user.setRole(data.role());
+        return repository.save(user);
+    }
+    public User findByEmail(String email) {
+        return repository.findByEmail(email).orElseThrow(() -> new ResourceNotFind("User not found with email: " + email));
+    }
 }

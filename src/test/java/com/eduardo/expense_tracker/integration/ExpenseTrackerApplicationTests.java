@@ -1,11 +1,10 @@
-package com.eduardo.expense_tracker;
+package com.eduardo.expense_tracker.integration;
 
-import com.eduardo.expense_tracker.dtos.BankAccountDTO;
-import com.eduardo.expense_tracker.dtos.ExpenseDTO;
-import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
-import com.eduardo.expense_tracker.dtos.UserDTO;
+import com.eduardo.expense_tracker.TestcontainersConfiguration;
+import com.eduardo.expense_tracker.dtos.*;
 import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.entities.user.UserRole;
 import com.eduardo.expense_tracker.repositories.*;
 import com.eduardo.expense_tracker.services.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +62,10 @@ class ExpenseTrackerApplicationTests {
 	}
 	@Test
 	void deveriaDescontarDoMensalEBanco() {
+		RegisterDTO registerDTO = new RegisterDTO("eduardo@gmail.com", "password", UserRole.USER);
+		userService.createUser(registerDTO);
+		User userfound = userService.findByEmail(registerDTO.email());
+
 		Category category = new Category();
 		category.setName("Alimentação");
 		category.setNotifyLimit(new BigDecimal(200));
@@ -78,13 +81,11 @@ class ExpenseTrackerApplicationTests {
 
 		UserDTO userDTO = new UserDTO();
 		userDTO.setName("Eduardo");
-		userDTO.setEmail("eduardo@gmail.com");
-		userDTO.setPassword("123456");
 		userDTO.setCpf("12345678900");
 		userDTO.setPhone("11999999999");
 		userDTO.setBirthDate(LocalDate.parse("2003-06-18"));
 		userDTO.setLocationId(location.getId());
-		userService.insertUser(userDTO);
+		userService.updateUser(userfound.getId(), userDTO);
 		User user = userService.userFindById(1L);
 
 		BankAccountDTO bankAccount = new BankAccountDTO();

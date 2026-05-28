@@ -3,9 +3,11 @@ package com.eduardo.expense_tracker.controllers;
 import com.eduardo.expense_tracker.dtos.AuthenticationDTO;
 import com.eduardo.expense_tracker.dtos.LoginResponseDTO;
 import com.eduardo.expense_tracker.dtos.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.infra.TokenService;
 import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,8 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private TokenService tokenService;
-
+    @Autowired
+    private UserService userService;
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
@@ -43,9 +46,10 @@ public class AuthenticationController {
         if (this.userRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().body("Email already in use");
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
-        User newUser = new User(data.email(), encryptedPassword, data.role());
 
-        this.userRepository.save(newUser);
-        return ResponseEntity.ok().build();
+        RegisterDTO registerDTO = new RegisterDTO(data.email(), encryptedPassword, data.role());
+
+        userService.createUser(registerDTO);
+        return ResponseEntity.ok().body(registerDTO);
     }
 }
