@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.resource;
+package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.services.LocationService;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/location")
-public class LocationResource {
+public class LocationController {
 
     @Autowired
     private LocationService locationService;

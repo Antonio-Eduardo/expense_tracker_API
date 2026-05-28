@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.resource;
+package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.dtos.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Expense;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/expense")
-public class ExpenseResource {
+public class ExpenseController {
 
     @Autowired
     private ExpenseService expenseService;

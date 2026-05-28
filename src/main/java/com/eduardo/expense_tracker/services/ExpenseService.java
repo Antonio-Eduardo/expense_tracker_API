@@ -7,7 +7,7 @@ import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.CategoryRepository;
 import com.eduardo.expense_tracker.repositories.ExpenseRepository;
 import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
-import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +29,9 @@ public class ExpenseService {
     public Expense insertExpense(ExpenseDTO expense){
         Expense expenseDB = new Expense();
         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpenseId())
-                .orElseThrow(() -> new ResourceNotFind("Monthly Expense not found with id: " + expense.getMonthlyExpenseId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + expense.getMonthlyExpenseId()));
         Category category = categoryRepository.findById(expense.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFind("Category not found with id: " + expense.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + expense.getCategoryId()));
         expenseDB.setAmount(expense.getAmount());
         expenseDB.setDescription(expense.getDescription());
         expenseDB.setExpenseMoment(Instant.now());
@@ -51,7 +51,7 @@ public class ExpenseService {
          repository.deleteById(id);
      }
      public void processExpense(Expense expense) {
-         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpense().getId()).orElseThrow(() -> new ResourceNotFind("Monthly Expense not found with id: " + expense.getMonthlyExpense().getId()));
+         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpense().getId()).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + expense.getMonthlyExpense().getId()));
              BigDecimal updateTotal = monthlyExpense.getMonthTotal().add(expense.getAmount());
              monthlyExpense.setMonthTotal(updateTotal);
 

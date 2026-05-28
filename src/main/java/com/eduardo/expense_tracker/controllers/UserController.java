@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.resource;
+package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.user.User;
@@ -6,14 +6,12 @@ import com.eduardo.expense_tracker.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-public class UserResource {
+public class UserController {
 
     @Autowired
     UserService userService;

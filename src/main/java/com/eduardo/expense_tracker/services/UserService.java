@@ -4,10 +4,9 @@ import com.eduardo.expense_tracker.dtos.RegisterDTO;
 import com.eduardo.expense_tracker.dtos.UserDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.entities.user.User;
-import com.eduardo.expense_tracker.entities.user.UserRole;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
-import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +48,7 @@ public class UserService {
         }
         if (obj.getLocationId() != null) {
             Location location = locationRepository.findById(obj.getLocationId())
-                    .orElseThrow(() -> new ResourceNotFind("Location not found with id: " + obj.getLocationId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + obj.getLocationId()));
             userFind.setLocation(location);
         }
         if (obj.getCpf() != null) {
@@ -67,6 +66,6 @@ public class UserService {
         return repository.save(user);
     }
     public User findByEmail(String email) {
-        return repository.findByEmail(email).orElseThrow(() -> new ResourceNotFind("User not found with email: " + email));
+        return repository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 }

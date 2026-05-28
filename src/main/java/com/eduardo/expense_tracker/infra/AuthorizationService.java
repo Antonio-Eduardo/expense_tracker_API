@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.services.servicesAuth;
+package com.eduardo.expense_tracker.infra;
 
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

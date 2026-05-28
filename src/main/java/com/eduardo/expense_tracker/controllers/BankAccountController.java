@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.resource;
+package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.dtos.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/bank-account")
-public class BankAcccountResource {
+public class BankAccountController {
 
     @Autowired
     private BankAccountService service;

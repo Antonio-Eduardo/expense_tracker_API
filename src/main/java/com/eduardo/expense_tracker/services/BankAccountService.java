@@ -5,7 +5,7 @@ import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
-import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class BankAccountService {
 
     public BankAccount insertBankAccount(BankAccountDTO bankAccount){
         BankAccount bankAccountDB = new BankAccount();
-        User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFind("User not found with id: " + bankAccount.getUserId()));
+        User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + bankAccount.getUserId()));
         bankAccountDB.setTypeAccount(bankAccount.getTypeAccount());
         bankAccountDB.setCreditCardClosingDate(bankAccount.getCreditCardClosingDate());
         bankAccountDB.setBalance(bankAccount.getBalance());
@@ -44,7 +44,7 @@ public class BankAccountService {
         bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
     }
     public void updateBankAccount(Long id, BankAccount obj){
-        BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFind("Bank Account not found with id: " + id));
+        BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);
             repository.save(bankAccountFind);
     }

@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.infra.exception;
 
-import com.eduardo.expense_tracker.services.exceptions.ResourceNotFind;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,8 +11,8 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFind.class)
-    public ResponseEntity<StandartError> resourceNotFound(ResourceNotFind e){
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<StandartError> resourceNotFound(ResourceNotFoundException e){
         StandartError error = new StandartError(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),

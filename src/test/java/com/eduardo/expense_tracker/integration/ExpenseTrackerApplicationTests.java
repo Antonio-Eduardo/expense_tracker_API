@@ -47,7 +47,7 @@ class ExpenseTrackerApplicationTests {
 	@Autowired
 	private LocationService locationService;
 	@Autowired
-	private CategoryServices categoryServices;
+	private CategoryService categoryServices;
 	@Autowired
 	private MonthlyExpenseService monthlyExpenseService;
 
