@@ -30,6 +30,7 @@ O **expense_tracker_API** é uma API REST desenvolvida em Java com Spring Boot p
 
 As principais funcionalidades já implementadas incluem:
 
+- Tratamento global de exceções com respostas padronizadas (`@RestControllerAdvice`)
 - Autenticação stateless com JWT (registro, login e proteção de rotas)
 - Controle de roles de acesso (`ADMIN` e `USER`)
 - Cadastro e gerenciamento de usuários com localização
@@ -87,10 +88,12 @@ src/
 │       │   ├── MonthlyExpense.java
 │       │   └── Expense.java
 │       ├── infra/
-│       │   └── security/
-│       │       ├── SecurityConfiguration.java   # Filtros, CSRF, rotas públicas/protegidas
-│       │       ├── SecurityFilter.java          # Intercepta requisições e valida JWT
-│       │       └── TokenService.java            # Geração e validação de tokens JWT
+│       │   ├── exception/
+│       │   │   ├── GlobalExceptionHandler.java  # Tratamento global de exceções (@RestControllerAdvice)
+│       │   │   └── StandartError.java           # Payload padronizado de erro
+│       │   ├── SecurityConfiguration.java       # Filtros, CSRF, rotas públicas/protegidas
+│       │   ├── SecurityFilter.java              # Intercepta requisições e valida JWT
+│       │   └── TokenService.java                # Geração e validação de tokens JWT
 │       ├── repositories/
 │       │   ├── UserRepository.java
 │       │   ├── LocationRepository.java
@@ -344,6 +347,5 @@ mvn test
 
 ## Melhorias Futuras
 
-- [ ] Tratamento global de exceções (`@ControllerAdvice`)
 - [ ] Notificação ao atingir limite de categoria
 - [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
