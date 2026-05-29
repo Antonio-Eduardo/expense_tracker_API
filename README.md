@@ -6,7 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 [![Licença MIT](https://img.shields.io/badge/licenca-MIT-green)](LICENSE)
 
-> API REST de controle de gastos pessoais com contas bancárias, categorias de gastos e histórico mensal. Autenticação via JWT, persistência em PostgreSQL via Docker e testes de integração com Testcontainers.
+> API REST de controle de gastos pessoais com contas bancárias, categorias de gastos e histórico mensal. Autenticação via JWT, persistência em PostgreSQL via Docker, testes de integração com Testcontainers e testes unitários com Mockito.
 
 ---
 
@@ -18,6 +18,7 @@
 - [Modelo de Dados](#modelo-de-dados)
 - [Autenticação](#autenticação)
 - [Endpoints Disponíveis](#endpoints-disponíveis)
+- [Tratamento de Exceções](#tratamento-de-exceções)
 - [Como Executar](#como-executar)
 - [Testes](#testes)
 - [Melhorias Futuras](#melhorias-futuras)
@@ -28,19 +29,22 @@
 
 O **expense_tracker_API** é uma API REST desenvolvida em Java com Spring Boot para controle de gastos pessoais. O sistema permite que usuários gerenciem suas contas bancárias, registrem despesas mensais categorizadas e acompanhem limites de gasto por categoria.
 
-As principais funcionalidades já implementadas incluem:
+As principais funcionalidades implementadas incluem:
 
-- Tratamento global de exceções com respostas padronizadas (`@RestControllerAdvice`)
 - Autenticação stateless com JWT (registro, login e proteção de rotas)
 - Controle de roles de acesso (`ADMIN` e `USER`)
+- Tratamento global de exceções com respostas padronizadas (`@RestControllerAdvice`)
+- Exceções customizadas por tipo: recurso não encontrado, duplicidade e regra de negócio
 - Cadastro e gerenciamento de usuários com localização
 - Contas bancárias associadas a cada usuário
 - Registro de despesas agrupadas por mês (`MonthlyExpense`)
 - Categorização de gastos com limite de notificação por categoria
-- Controllers REST completos para todos os recursos (User, BankAccount, Category, MonthlyExpense, Expense, Location)
+- Controllers REST completos para todos os recursos
 - DTOs para desacoplamento entre camada de transporte e entidades
 - Processamento de despesas: atualiza automaticamente o total mensal e o saldo da conta bancária
+- Validação de saldo insuficiente ao fechar o mês
 - Testes de integração com banco PostgreSQL real (Testcontainers)
+- Testes unitários de serviços com Mockito
 
 ---
 
@@ -56,6 +60,8 @@ As principais funcionalidades já implementadas incluem:
 | PostgreSQL | 16 | Banco de dados |
 | Docker | — | Container do banco de dados |
 | Testcontainers | — | PostgreSQL real nos testes de integração |
+| JUnit 5 | — | Testes unitários e de integração |
+| Mockito | — | Mocks nos testes unitários |
 | Flyway | — | Versionamento do schema do banco |
 | Lombok | — | Redução de boilerplate |
 | Maven | — | Gerenciamento de dependências |
@@ -69,19 +75,25 @@ src/
 ├── main/
 │   └── java/com/eduardo/expense_tracker/
 │       ├── controllers/
-│       │   └── AuthenticationController.java   # Endpoints /auth/register e /auth/login
+│       │   ├── AuthenticationController.java   # Endpoints /auth/register e /auth/login
+│       │   ├── UserController.java
+│       │   ├── BankAccountController.java
+│       │   ├── CategoryController.java
+│       │   ├── MonthlyExpenseController.java
+│       │   ├── ExpenseController.java
+│       │   └── LocationController.java
 │       ├── dtos/
-│       │   ├── AuthenticationDTO.java           # Payload de login (email + password)
-│       │   ├── LoginResponseDTO.java            # Resposta com token JWT
-│       │   ├── RegisterDTO.java                 # Payload de registro (email, password, role)
+│       │   ├── AuthenticationDTO.java
+│       │   ├── LoginResponseDTO.java
+│       │   ├── RegisterDTO.java
 │       │   ├── BankAccountDTO.java
 │       │   ├── ExpenseDTO.java
 │       │   ├── MonthlyExpenseDTO.java
 │       │   └── UserDTO.java
 │       ├── entities/
 │       │   ├── user/
-│       │   │   ├── User.java                    # Implementa UserDetails
-│       │   │   └── UserRole.java                # Enum: ADMIN, USER
+│       │   │   ├── User.java                   # Implementa UserDetails
+│       │   │   └── UserRole.java               # Enum: ADMIN, USER
 │       │   ├── Location.java
 │       │   ├── BankAccount.java
 │       │   ├── Category.java
@@ -89,11 +101,12 @@ src/
 │       │   └── Expense.java
 │       ├── infra/
 │       │   ├── exception/
-│       │   │   ├── GlobalExceptionHandler.java  # Tratamento global de exceções (@RestControllerAdvice)
-│       │   │   └── StandartError.java           # Payload padronizado de erro
-│       │   ├── SecurityConfiguration.java       # Filtros, CSRF, rotas públicas/protegidas
-│       │   ├── SecurityFilter.java              # Intercepta requisições e valida JWT
-│       │   └── TokenService.java                # Geração e validação de tokens JWT
+│       │   │   ├── GlobalExceptionHandler.java # Tratamento global (@RestControllerAdvice)
+│       │   │   └── StandartError.java          # Payload padronizado de erro
+│       │   ├── AuthorizationService.java       # Implementa UserDetailsService
+│       │   ├── SecurityConfiguration.java      # Filtros, CSRF, rotas públicas/protegidas
+│       │   ├── SecurityFilter.java             # Intercepta requisições e valida JWT
+│       │   └── TokenService.java               # Geração e validação de tokens JWT
 │       ├── repositories/
 │       │   ├── UserRepository.java
 │       │   ├── LocationRepository.java
@@ -101,30 +114,27 @@ src/
 │       │   ├── CategoryRepository.java
 │       │   ├── MonthlyExpenseRepository.java
 │       │   └── ExpenseRepository.java
-│       ├── resource/
-│       │   ├── UserResource.java
-│       │   ├── BankAccountResource.java
-│       │   ├── CategoryResource.java
-│       │   ├── MonthlyExpenseResource.java
-│       │   ├── ExpenseResource.java
-│       │   └── LocationResource.java
 │       ├── services/
 │       │   ├── UserService.java
 │       │   ├── LocationService.java
 │       │   ├── BankAccountService.java
-│       │   ├── CategoryServices.java
+│       │   ├── CategoryService.java
 │       │   ├── MonthlyExpenseService.java
 │       │   ├── ExpenseService.java
-│       │   ├── exceptions/
-│       │   │   └── ResourceNotFind.java
-│       │   └── servicesAuth/
-│       │       └── AuthorizationService.java    # Implementa UserDetailsService
+│       │   └── exceptions/
+│       │       ├── ResourceNotFoundException.java
+│       │       ├── DuplicateResourceException.java
+│       │       └── BusinessException.java
 │       └── ExpenseTrackerApplication.java
 └── test/
     └── java/com/eduardo/expense_tracker/
-        ├── ExpenseTrackerApplicationTests.java
         ├── TestcontainersConfiguration.java
-        └── TestExpenseTrackerApplication.java
+        ├── TestExpenseTrackerApplication.java
+        ├── integration/
+        │   └── ExpenseTrackerApplicationTests.java
+        └── unit/
+            └── service/
+                └── UserServiceTest.java
 ```
 
 ---
@@ -149,8 +159,8 @@ Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──�
 
 **Fluxo de processamento:**
 
-1. `ExpenseService.processExpense()` — adiciona o valor da despesa ao total do mês e desconta do limite mensal
-2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta bancária
+1. `ExpenseService.processExpense()` — adiciona o valor da despesa ao total do mês e desconta do limite mensal. Lança `BusinessException` se o valor exceder o limite da categoria
+2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta bancária. Lança `BusinessException` se o saldo for insuficiente
 
 ---
 
@@ -171,7 +181,7 @@ Content-Type: application/json
 }
 ```
 
-Retorna `200 OK` em caso de sucesso ou `400 Bad Request` se o e-mail já estiver cadastrado.
+Retorna `200 OK` em caso de sucesso ou `409 Conflict` se o e-mail já estiver cadastrado.
 
 ### Login
 
@@ -284,6 +294,30 @@ api.security.token.secret=seu-segredo-aqui
 
 ---
 
+## Tratamento de Exceções
+
+O projeto utiliza um `GlobalExceptionHandler` centralizado com exceções customizadas por tipo:
+
+| Exceção | HTTP | Quando ocorre |
+|---|---|---|
+| `ResourceNotFoundException` | 404 Not Found | Recurso não encontrado por ID ou e-mail |
+| `DuplicateResourceException` | 409 Conflict | E-mail já cadastrado no registro |
+| `BusinessException` | 400 Bad Request | Regras de negócio violadas (saldo insuficiente, limite excedido) |
+| `Exception` | 500 Internal Server Error | Erros inesperados |
+
+Todas as respostas de erro seguem o mesmo formato:
+
+```json
+{
+  "timestamp": "2026-05-01T12:00:00Z",
+  "status": 404,
+  "error": "Resource not found",
+  "message": "User not found with id: 99"
+}
+```
+
+---
+
 ## Como Executar
 
 ### Pré-requisitos
@@ -331,13 +365,24 @@ mvn spring-boot:run
 
 ## Testes
 
-O projeto utiliza Testcontainers para testes de integração — o Spring sobe completo contra um PostgreSQL real em container, sem banco em memória.
+O projeto possui dois níveis de testes:
 
-O teste principal (`deveriaDescontarDoMensalEBanco`) valida o fluxo completo:
+### Testes de Integração (Testcontainers)
+
+O Spring sobe completo contra um PostgreSQL real em container, sem banco em memória. O teste principal (`deveriaDescontarDoMensalEBanco`) valida o fluxo completo:
 
 - Criação de localização, usuário, conta bancária, categoria e despesas
 - Processamento das despesas no mês (atualização de total e limite)
 - Desconto do total mensal no saldo da conta bancária
+
+### Testes Unitários (Mockito)
+
+Testes isolados dos serviços com repositórios mockados. Cobrem os principais fluxos do `UserService`:
+
+- Criação de usuário com e-mail e senha
+- Atualização de usuário
+- Busca por e-mail
+- Deleção de usuário
 
 ```bash
 mvn test
@@ -349,3 +394,5 @@ mvn test
 
 - [ ] Notificação ao atingir limite de categoria
 - [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
+- [ ] Testes unitários para os demais serviços (BankAccountService, ExpenseService, MonthlyExpenseService)
+- [ ] Documentação da API com Swagger/OpenAPI
