@@ -1,6 +1,5 @@
 package com.eduardo.expense_tracker.dtos;
 
-import com.eduardo.expense_tracker.entities.Location;
 import lombok.Data;
 
 import java.time.LocalDate;

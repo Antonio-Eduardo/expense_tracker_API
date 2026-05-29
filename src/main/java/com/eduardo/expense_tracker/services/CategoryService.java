@@ -15,19 +15,24 @@ public class CategoryService {
         public Category insertCategory(Category category){
             return repository.save(category);
         }
+
         public Category findCategoryById(Long id){
            return repository.findById(id).orElse(null);
         }
+
         public List<Category> findAllCategories(){
             return repository.findAll();
         }
+
         public void deleteCategory(Long id) {
             repository.deleteById(id);
         }
+
         public void updateData(Category categoryFind, Category obj){
             categoryFind.setNotifyLimit(obj.getNotifyLimit());
             categoryFind.setName(obj.getName());
         }
+
         public Category updateCategory(Long id, Category obj){
             Category categoryFind = repository.findById(id).orElse(null);
             if (categoryFind != null) {

@@ -33,16 +33,20 @@ public class BankAccountService {
     public BankAccount findBankAccountById(Long id){
         return repository.findById(id).orElse(null);
     }
+
     public List<BankAccount> findAllBankAccounts(){
         return repository.findAll();
     }
+
     public void deleteBankAccount(Long id) {
         repository.deleteById(id);
     }
+
     public void updateData(BankAccount bankAccountFind, BankAccount obj){
         bankAccountFind.setTypeAccount(obj.getTypeAccount());
         bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
     }
+
     public void updateBankAccount(Long id, BankAccount obj){
         BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);

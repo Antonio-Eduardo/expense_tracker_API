@@ -5,6 +5,7 @@ import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
+import com.eduardo.expense_tracker.services.exceptions.BusinessException;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,9 +55,13 @@ public class MonthlyExpenseService {
        public void processMonthlyExpense(MonthlyExpense monthlyExpense){
             BankAccount bankAccount = bankAccountRepository.findById(monthlyExpense.getBankAccount().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpense.getBankAccount().getId()));
-            BigDecimal updateBalance = bankAccount.getBalance().subtract(monthlyExpense.getMonthTotal());
-            bankAccount.setBalance(updateBalance);
-            bankAccountRepository.save(bankAccount);
+            if (bankAccount.getBalance().compareTo(monthlyExpense.getMonthTotal()) < 0) {
+                throw new BusinessException("Insufficient balance in the bank account to cover the monthly expense.");
+            } else {
+                BigDecimal updateBalance = bankAccount.getBalance().subtract(monthlyExpense.getMonthTotal());
+                bankAccount.setBalance(updateBalance);
+                bankAccountRepository.save(bankAccount);
+            }
         }
 
 }
