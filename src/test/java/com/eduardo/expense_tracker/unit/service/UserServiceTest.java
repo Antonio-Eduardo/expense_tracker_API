@@ -11,10 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,5 +79,17 @@ public class UserServiceTest {
         verify(userRepository).findByEmail(any(String.class));
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
+    }
+    @Test
+    public void deveriaRetornarTodosOsUsuarios(){
+        List<User> users = List.of(new User(), new User());
+
+        when(userRepository.findAll()).thenReturn(users);
+
+        List<User> result = userService.userFindAll();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(userRepository).findAll();
     }
 }

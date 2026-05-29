@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.infra;
+package com.eduardo.expense_tracker.infra.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

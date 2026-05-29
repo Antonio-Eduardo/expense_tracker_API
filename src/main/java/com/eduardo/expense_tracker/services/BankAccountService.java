@@ -9,6 +9,7 @@ import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 @Service
@@ -43,13 +44,17 @@ public class BankAccountService {
     }
 
     public void updateData(BankAccount bankAccountFind, BankAccount obj){
-        bankAccountFind.setTypeAccount(obj.getTypeAccount());
-        bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
+        if (bankAccountFind.getTypeAccount()  == null) {
+            bankAccountFind.setTypeAccount(obj.getTypeAccount());
+        }
+        if (bankAccountFind.getCreditCardClosingDate() == null) {
+            bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
+        }
     }
 
-    public void updateBankAccount(Long id, BankAccount obj){
+    public BankAccount updateBankAccount(Long id, BankAccount obj){
         BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);
-            repository.save(bankAccountFind);
+           return repository.save(bankAccountFind);
     }
 }

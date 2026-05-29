@@ -18,8 +18,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
