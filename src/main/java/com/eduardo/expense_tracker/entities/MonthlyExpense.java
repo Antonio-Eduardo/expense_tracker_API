@@ -21,6 +21,7 @@ public class MonthlyExpense {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private BigDecimal monthTotal;
+    @Column(name = "expense_month")
     private String month;
 
     private BigDecimal limitExpense;
