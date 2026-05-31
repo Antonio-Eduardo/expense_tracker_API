@@ -60,9 +60,6 @@ public class UserService {
         }
      }
     public User createUser(RegisterDTO data) {
-        if (repository.findByEmail(data.email()).isPresent()) {
-            throw new DuplicateResourceException("Email already in use: " + data.email());
-        }
         User user = new User();
         user.setEmail(data.email());
         user.setPassword(data.password());

@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
+import com.eduardo.expense_tracker.dtos.LocationDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.services.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,13 @@ public class LocationController {
         return ResponseEntity.ok().body(locationService.findLocationById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<Location> insertLocation(@RequestBody Location location) {
-        return ResponseEntity.ok().body(locationService.insertLocation(location));
+    public ResponseEntity<LocationDTO> insertLocation(@RequestBody LocationDTO data) {
+        LocationDTO locationDTO = locationService.insertLocation(data);
+        return ResponseEntity.ok().body(locationDTO);
     }
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<Location> updateLocation(@PathVariable Long id, @RequestBody Location location) {
-      return ResponseEntity.ok().body(locationService.locationUpdate(id, location));
+    public ResponseEntity<Location> updateLocation(@PathVariable Long id, @RequestBody LocationDTO locationDTO) {
+      return ResponseEntity.ok().body(locationService.locationUpdate(id, locationDTO));
     }
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {

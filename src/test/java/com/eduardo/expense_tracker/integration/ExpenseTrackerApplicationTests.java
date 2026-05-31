@@ -70,7 +70,7 @@ class ExpenseTrackerApplicationTests {
 		category.setNotifyLimit(new BigDecimal(200));
 		categoryServices.insertCategory(category);
 
-		Location location = new Location();
+		LocationDTO location = new LocationDTO();
 		location.setCity("São Paulo");
 		location.setState("SP");
 		location.setAddress1("Rua A, 123");
@@ -83,7 +83,7 @@ class ExpenseTrackerApplicationTests {
 		userDTO.setCpf("12345678900");
 		userDTO.setPhone("11999999999");
 		userDTO.setBirthDate(LocalDate.parse("2003-06-18"));
-		userDTO.setLocationId(location.getId());
+		//userDTO.setLocationId(location.getId());
 		userService.updateUser(userfound.getId(), userDTO);
 		User user = userService.userFindById(1L);
 

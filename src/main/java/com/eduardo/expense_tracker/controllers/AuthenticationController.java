@@ -42,13 +42,13 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data){
-        if (this.userRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().body("Email already in use");
+        if (this.userRepository.findByEmail(data.email()).isPresent()) return ResponseEntity.badRequest().body("Email already in use");
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
         RegisterDTO registerDTO = new RegisterDTO(data.email(), encryptedPassword, data.role());
 
-        userService.createUser(registerDTO);
-        return ResponseEntity.ok().body(registerDTO);
+
+        return ResponseEntity.ok().body(userService.createUser(registerDTO));
     }
 }

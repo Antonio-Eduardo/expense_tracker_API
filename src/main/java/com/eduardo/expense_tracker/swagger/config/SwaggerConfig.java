@@ -18,9 +18,18 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Expense Tracker API")
                         .version("1.0.0")
-                        .description("API REST de controle de gastos pessoais com contas bancárias, categorias de gastos " +
-                                "e histórico mensal. Autenticação via JWT, persistência em PostgreSQL, testes de integração com Testcontainers " +
-                                "e testes unitários com Mockito. Deploy ativo no Railway.")
+                        .description("API REST para controle de gastos pessoais.\n" +
+                                "            \n" +
+                                "            ## Funcionalidades\n" +
+                                "            - Gerenciamento de usuários e perfis\n" +
+                                "            - Controle de contas bancárias\n" +
+                                "            - Categorização de despesas\n" +
+                                "            - Histórico mensal de gastos\n" +
+                                "            \n" +
+                                "            ## Autenticação\n" +
+                                "            Todos os endpoints (exceto /auth) requerem Bearer Token JWT.\n" +
+                                "            Para gerar o token, " + "Registre um Email - Senha - Role, no endpoint POST /auth/register.\n" +
+                                "            Para receber o token, " + "Faça Login com o usuário registrado no endpoint POST /auth/login.")
                         .contact(new Contact()
                                 .name("Antonio Eduardo")
                                 .email("eduardo.moreira.java@gmail.com")))
