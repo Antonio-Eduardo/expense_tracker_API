@@ -1,4 +1,4 @@
-package com.eduardo.expense_tracker.dtos;
+package com.eduardo.expense_tracker.dtos.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

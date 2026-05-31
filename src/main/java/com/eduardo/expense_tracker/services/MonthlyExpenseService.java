@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.MonthlyExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;

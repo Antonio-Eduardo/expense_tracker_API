@@ -1,7 +1,7 @@
 package com.eduardo.expense_tracker.unit.service;
 
-import com.eduardo.expense_tracker.dtos.RegisterDTO;
-import com.eduardo.expense_tracker.dtos.UserDTO;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.request.UserDTO;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.entities.user.UserRole;
 import com.eduardo.expense_tracker.repositories.UserRepository;

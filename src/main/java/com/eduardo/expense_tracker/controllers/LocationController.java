@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.LocationDTO;
+import com.eduardo.expense_tracker.dtos.request.LocationDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.services.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;

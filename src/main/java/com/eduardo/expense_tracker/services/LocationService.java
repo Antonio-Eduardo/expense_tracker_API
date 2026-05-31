@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.LocationDTO;
+import com.eduardo.expense_tracker.dtos.request.LocationDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import jakarta.transaction.Transactional;

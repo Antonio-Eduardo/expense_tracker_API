@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.services.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;

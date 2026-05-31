@@ -1,7 +1,7 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.CategoryDTO;
-import com.eduardo.expense_tracker.dtos.ExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.CategoryDTO;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.repositories.CategoryRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;

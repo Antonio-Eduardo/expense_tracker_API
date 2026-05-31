@@ -1,12 +1,11 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.RegisterDTO;
-import com.eduardo.expense_tracker.dtos.UserDTO;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.request.UserDTO;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
-import com.eduardo.expense_tracker.services.exceptions.DuplicateResourceException;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

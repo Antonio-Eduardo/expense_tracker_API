@@ -1,8 +1,8 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.AuthenticationDTO;
-import com.eduardo.expense_tracker.dtos.LoginResponseDTO;
-import com.eduardo.expense_tracker.dtos.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.request.AuthenticationDTO;
+import com.eduardo.expense_tracker.dtos.request.LoginResponseDTO;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTO;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.infra.security.TokenService;
 import com.eduardo.expense_tracker.repositories.UserRepository;

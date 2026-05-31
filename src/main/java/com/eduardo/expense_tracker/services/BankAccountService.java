@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTO;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
@@ -9,7 +9,6 @@ import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 @Service

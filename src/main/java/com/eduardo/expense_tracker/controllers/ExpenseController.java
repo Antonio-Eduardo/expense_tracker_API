@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.ExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.services.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;

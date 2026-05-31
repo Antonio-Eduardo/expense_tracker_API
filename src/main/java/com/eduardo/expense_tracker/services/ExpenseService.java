@@ -1,7 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.CategoryDTO;
-import com.eduardo.expense_tracker.dtos.ExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ExpenseService {

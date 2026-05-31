@@ -1,7 +1,7 @@
 package com.eduardo.expense_tracker.integration;
 
 import com.eduardo.expense_tracker.TestcontainersConfiguration;
-import com.eduardo.expense_tracker.dtos.*;
+import com.eduardo.expense_tracker.dtos.request.*;
 import com.eduardo.expense_tracker.entities.*;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.entities.user.UserRole;

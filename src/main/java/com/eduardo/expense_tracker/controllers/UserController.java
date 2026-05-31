@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.UserDTO;
+import com.eduardo.expense_tracker.dtos.request.UserDTO;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
