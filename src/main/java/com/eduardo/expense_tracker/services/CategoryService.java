@@ -1,7 +1,10 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.CategoryDTO;
+import com.eduardo.expense_tracker.dtos.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.repositories.CategoryRepository;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,13 +15,37 @@ public class CategoryService {
     @Autowired
         private CategoryRepository repository;
 
-        public Category insertCategory(Category category){
+        public CategoryDTO insertCategory(CategoryDTO categoryDTO){
+            Category category = new Category();
+            category.setName(categoryDTO.getName());
+            category.setNotifyLimit(categoryDTO.getNotifyLimit());
 
-            return repository.save(category);
+            Category saveCategory = repository.save(category);
+
+            CategoryDTO response = new CategoryDTO();
+            response.setName(saveCategory.getName());
+            response.setNotifyLimit(saveCategory.getNotifyLimit());
+
+            return response;
         }
 
-        public Category findCategoryById(Long id){
-           return repository.findById(id).orElse(null);
+        public CategoryDTO findCategoryById(Long id){
+            Category category = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category not fond" + id));
+            CategoryDTO categoryDTO =  new CategoryDTO();
+            categoryDTO.setName(category.getName());
+            categoryDTO.setNotifyLimit(category.getNotifyLimit());
+            if (category.getExpenses() != null){
+                List<ExpenseDTO> expenseDTOList = category.getExpenses().stream().map(
+                        expense -> new ExpenseDTO(
+                                expense.getAmount(),
+                                expense.getDescription(),
+                                expense.getExpenseMoment(),
+                                expense.getCategory().getId(),
+                                expense.getMonthlyExpense().getId()
+                        )).toList();
+                categoryDTO.setExpenseDTOS(expenseDTOList);
+            }
+           return categoryDTO;
         }
 
         public List<Category> findAllCategories(){

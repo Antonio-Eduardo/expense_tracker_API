@@ -1,5 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
+import com.eduardo.expense_tracker.dtos.CategoryDTO;
 import com.eduardo.expense_tracker.dtos.ExpenseDTO;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ExpenseService {
@@ -27,18 +29,34 @@ public class ExpenseService {
     private CategoryRepository categoryRepository;
 
 
-    public Expense insertExpense(ExpenseDTO expense){
+    public ExpenseDTO insertExpense(ExpenseDTO expenseDTO){
         Expense expenseDB = new Expense();
-        MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpenseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + expense.getMonthlyExpenseId()));
-        Category category = categoryRepository.findById(expense.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + expense.getCategoryId()));
-        expenseDB.setAmount(expense.getAmount());
-        expenseDB.setDescription(expense.getDescription());
+
+        MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expenseDTO.getMonthlyExpenseId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Monthly Expense not found with id: "
+                        + expenseDTO.getMonthlyExpenseId()));
+
+        Category category = categoryRepository.findById(expenseDTO.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Categoria não encontrada"
+                        + expenseDTO.getCategoryId()));
+
+        expenseDB.setAmount(expenseDTO.getAmount());
+        expenseDB.setDescription(expenseDTO.getDescription());
         expenseDB.setExpenseMoment(Instant.now());
         expenseDB.setMonthlyExpense(monthlyExpense);
         expenseDB.setCategory(category);
-        return repository.save(expenseDB);
+
+        repository.save(expenseDB);
+
+        ExpenseDTO response = new ExpenseDTO();
+        response.setDescription(expenseDB.getDescription());
+        response.setAmount(expenseDB.getAmount());
+        response.setExpenseMoment(expenseDB.getExpenseMoment());
+        response.setMonthlyExpenseId(expenseDB.getMonthlyExpense().getId());
+        response.setCategoryId(expenseDB.getCategory().getId());
+        return response;
     }
 
 
