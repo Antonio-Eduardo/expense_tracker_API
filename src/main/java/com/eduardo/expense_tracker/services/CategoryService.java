@@ -2,6 +2,8 @@ package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
 import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.CategoryDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.repositories.CategoryRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
@@ -15,28 +17,31 @@ public class CategoryService {
     @Autowired
         private CategoryRepository repository;
 
-        public CategoryDTOrequest insertCategory(CategoryDTOrequest categoryDTO){
+        public CategoryDTOresponse insertCategory(CategoryDTOrequest categoryDTO){
             Category category = new Category();
             category.setName(categoryDTO.getName());
             category.setNotifyLimit(categoryDTO.getNotifyLimit());
 
             Category saveCategory = repository.save(category);
 
-            CategoryDTOrequest response = new CategoryDTOrequest();
+            CategoryDTOresponse response = new CategoryDTOresponse();
+            response.setId(saveCategory.getId());
             response.setName(saveCategory.getName());
             response.setNotifyLimit(saveCategory.getNotifyLimit());
 
             return response;
         }
 
-        public CategoryDTOrequest findCategoryById(Long id){
+        public CategoryDTOresponse findCategoryById(Long id){
             Category category = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category not fond" + id));
-            CategoryDTOrequest categoryDTO =  new CategoryDTOrequest();
+
+            CategoryDTOresponse categoryDTO =  new CategoryDTOresponse();
             categoryDTO.setName(category.getName());
             categoryDTO.setNotifyLimit(category.getNotifyLimit());
             if (category.getExpenses() != null){
-                List<ExpenseDTOrequest> expenseDTOList = category.getExpenses().stream().map(
-                        expense -> new ExpenseDTOrequest(
+                List<ExpenseDTOresponse> expenseDTOList = category.getExpenses().stream().map(
+                        expense -> new ExpenseDTOresponse(
+                                expense.getId(),
                                 expense.getAmount(),
                                 expense.getDescription(),
                                 expense.getExpenseMoment(),

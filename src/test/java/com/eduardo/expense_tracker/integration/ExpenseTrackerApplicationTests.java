@@ -65,7 +65,7 @@ class ExpenseTrackerApplicationTests {
 		userService.createUser(registerDTO);
 		User userfound = userService.findByEmail(registerDTO.email());
 
-		Category category = new Category();
+		CategoryDTOrequest category = new CategoryDTOrequest();
 		category.setName("Alimentação");
 		category.setNotifyLimit(new BigDecimal(200));
 		categoryServices.insertCategory(category);
@@ -108,7 +108,7 @@ class ExpenseTrackerApplicationTests {
 		expenseDTO.setDescription("Compra no supermercado");
 		expenseDTO.setExpenseMoment(Instant.now());
 		expenseDTO.setMonthlyExpenseId(monthlyExpense.getId());
-		expenseDTO.setCategoryId(category.getId());
+		//expenseDTO.setCategoryId(category.getId());
 		expenseService.insertExpense(expenseDTO);
 		Expense expense = expenseService.findExpenseById(1L);
 		expenseService.processExpense(expense);
@@ -118,7 +118,7 @@ class ExpenseTrackerApplicationTests {
 		expenseDTO1.setDescription("Compra no mercado");
 		expenseDTO1.setExpenseMoment(Instant.now());
 		expenseDTO1.setMonthlyExpenseId(monthlyExpense.getId());
-		expenseDTO1.setCategoryId(category.getId());
+	//	expenseDTO1.setCategoryId(category.getId());
 		expenseService.insertExpense(expenseDTO1);
 		Expense expense1 = expenseService.findExpenseById(2L);
 		expenseService.processExpense(expense1);

@@ -1,5 +1,7 @@
 package com.eduardo.expense_tracker.controllers;
 
+import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.CategoryDTOresponse;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class CategoryController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Category> findById(@PathVariable Long id) {
+    public ResponseEntity<CategoryDTOresponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(categoryServices.findCategoryById(id));
     }
 
@@ -30,7 +32,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(categoryServices.updateCategory(id, category));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<Category> insertCategory(@RequestBody Category category) {
+    public ResponseEntity<CategoryDTOresponse> insertCategory(@RequestBody CategoryDTOrequest category) {
         return ResponseEntity.ok().body(categoryServices.insertCategory(category));
     }
     @DeleteMapping(value = "/delete/{id}")

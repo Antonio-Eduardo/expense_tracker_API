@@ -48,7 +48,6 @@ public class AuthenticationController {
 
         RegisterDTOrequest registerDTO = new RegisterDTOrequest(data.email(), encryptedPassword, data.role());
 
-
         return ResponseEntity.ok().body(userService.createUser(registerDTO));
     }
 }

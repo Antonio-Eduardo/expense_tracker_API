@@ -2,6 +2,8 @@ package com.eduardo.expense_tracker.unit.service;
 
 import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
 import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.RegisterDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.entities.user.UserRole;
 import com.eduardo.expense_tracker.repositories.UserRepository;
@@ -39,7 +41,7 @@ public class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User result = userService.updateUser(user.getId(), userDTO);
+        UserDTOresponse result = userService.updateUser(user.getId(), userDTO);
 
         assertNotNull(result);
         assertEquals("novo", result.getName());
@@ -60,7 +62,7 @@ public class UserServiceTest {
         user.setEmail(registerDTO.email());
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User result = userService.createUser(registerDTO);
+        RegisterDTOresponse result = userService.createUser(registerDTO);
 
         assertNotNull(result);
         verify(userRepository).save(any(User.class));
@@ -74,7 +76,7 @@ public class UserServiceTest {
 
         when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
 
-        User result = userService.findByEmail(user.getEmail());
+        UserDTOresponse result = userService.findByEmail(user.getEmail());
 
         verify(userRepository).findByEmail(any(String.class));
         assertNotNull(result);
@@ -86,7 +88,7 @@ public class UserServiceTest {
 
         when(userRepository.findAll()).thenReturn(users);
 
-        List<User> result = userService.userFindAll();
+        List<UserDTOresponse> result = userService.userFindAll();
 
         assertNotNull(result);
         assertEquals(2, result.size());

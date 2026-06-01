@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
@@ -27,7 +28,7 @@ public class ExpenseService {
     private CategoryRepository categoryRepository;
 
 
-    public ExpenseDTOrequest insertExpense(ExpenseDTOrequest expenseDTO){
+    public ExpenseDTOresponse insertExpense(ExpenseDTOrequest expenseDTO){
         Expense expenseDB = new Expense();
 
         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expenseDTO.getMonthlyExpenseId())
@@ -45,16 +46,9 @@ public class ExpenseService {
         expenseDB.setExpenseMoment(Instant.now());
         expenseDB.setMonthlyExpense(monthlyExpense);
         expenseDB.setCategory(category);
+        expenseDB = repository.save(expenseDB);
 
-        repository.save(expenseDB);
-
-        ExpenseDTOrequest response = new ExpenseDTOrequest();
-        response.setDescription(expenseDB.getDescription());
-        response.setAmount(expenseDB.getAmount());
-        response.setExpenseMoment(expenseDB.getExpenseMoment());
-        response.setMonthlyExpenseId(expenseDB.getMonthlyExpense().getId());
-        response.setCategoryId(expenseDB.getCategory().getId());
-        return response;
+        return convertToResponseDTO(expenseDB);
     }
 
 
@@ -81,5 +75,16 @@ public class ExpenseService {
              BigDecimal updateLimit = monthlyExpense.getLimitExpense().subtract(expense.getAmount());
              monthlyExpense.setLimitExpense(updateLimit);
              monthlyExpenseRepository.save(monthlyExpense);
+     }
+     public ExpenseDTOresponse convertToResponseDTO(Expense expense){
+        ExpenseDTOresponse response = new ExpenseDTOresponse();
+        response.setId(expense.getId());
+        response.setAmount(expense.getAmount());
+        response.setExpenseMoment(expense.getExpenseMoment());
+        response.setDescription(expense.getDescription());
+        response.setMonthlyExpenseId(expense.getMonthlyExpense().getId());
+        response.setCategoryId(expense.getCategory().getId());
+
+        return response;
      }
 }

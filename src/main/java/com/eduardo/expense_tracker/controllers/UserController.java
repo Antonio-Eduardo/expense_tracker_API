@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +24,7 @@ public class UserController {
     @GetMapping
     @Operation(summary = "Lista todos os usuários")
     @ApiResponse(responseCode = "200", description = "Sucesso")
-    public ResponseEntity<List<User>> findAll(){
+    public ResponseEntity<List<UserDTOresponse>> findAll(){
         return ResponseEntity.ok().body(userService.userFindAll());
     }
 
@@ -31,7 +32,7 @@ public class UserController {
     @Operation(summary = "Listar usuário por Id")
     @ApiResponse(responseCode = "200", description = "Sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    public ResponseEntity<User> findById(@PathVariable Long id){
+    public ResponseEntity<UserDTOresponse> findById(@PathVariable Long id){
         return ResponseEntity.ok().body(userService.userFindById(id));
     }
     @DeleteMapping(value = "/delete/{id}")
@@ -46,7 +47,7 @@ public class UserController {
     @Operation(summary = "Atualizar um usuário pelo Id")
     @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTOrequest user) {
+    public ResponseEntity<UserDTOresponse> updateUser(@PathVariable Long id, @RequestBody UserDTOrequest user) {
         return ResponseEntity.ok().body(userService.updateUser(id, user));
     }
 }

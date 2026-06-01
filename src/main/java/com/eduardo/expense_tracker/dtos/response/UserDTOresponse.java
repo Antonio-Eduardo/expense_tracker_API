@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public class UserDTOresponse {
     private Long id;
     public String name;
+    public String email;
     public String cpf;
     public String phone;
     public LocalDate birthDate;
