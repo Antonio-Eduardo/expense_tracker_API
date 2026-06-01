@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class CategoryDTO {
+public class CategoryDTOrequest {
     private BigDecimal notifyLimit;
     private String name;
-    private List<ExpenseDTO> expenseDTOS;
+    private List<ExpenseDTOrequest> expenseDTOS;
 }

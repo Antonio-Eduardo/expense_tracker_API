@@ -10,7 +10,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExpenseDTO {
+public class ExpenseDTOrequest {
     private BigDecimal amount;
     private String description;
     private Instant expenseMoment;

@@ -1,7 +1,7 @@
 package com.eduardo.expense_tracker.unit.service;
 
-import com.eduardo.expense_tracker.dtos.request.RegisterDTO;
-import com.eduardo.expense_tracker.dtos.request.UserDTO;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.entities.user.UserRole;
 import com.eduardo.expense_tracker.repositories.UserRepository;
@@ -33,7 +33,7 @@ public class UserServiceTest {
         user.setId(1L);
         user.setName("antigo");
 
-        UserDTO userDTO = new UserDTO();
+        UserDTOrequest userDTO = new UserDTOrequest();
         userDTO.setName("novo");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -55,7 +55,7 @@ public class UserServiceTest {
     }
     @Test
     public void deveriaCriarUmUsuarioComEmailEsenha() {
-        RegisterDTO registerDTO = new RegisterDTO("eduardo@gmail.com", "password", UserRole.USER);
+        RegisterDTOrequest registerDTO = new RegisterDTOrequest("eduardo@gmail.com", "password", UserRole.USER);
         User user = new User();
         user.setEmail(registerDTO.email());
         when(userRepository.save(any(User.class))).thenReturn(user);

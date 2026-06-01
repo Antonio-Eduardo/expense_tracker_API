@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class MonthlyExpenseDTO {
+public class MonthlyExpenseDTOrequest {
 
     private BigDecimal monthTotal;
     private String month;

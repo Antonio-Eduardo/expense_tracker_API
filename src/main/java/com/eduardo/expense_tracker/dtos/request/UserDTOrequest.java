@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class UserDTO {
+public class UserDTOrequest {
     public String name;
     public String cpf;
     public String phone;

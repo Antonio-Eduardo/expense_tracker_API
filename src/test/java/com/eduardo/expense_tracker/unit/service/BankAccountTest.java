@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.unit.service;
 
-import com.eduardo.expense_tracker.dtos.request.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.services.BankAccountService;
@@ -37,7 +37,7 @@ public class BankAccountTest {
         User user = new User();
         user.setId(1L);
 
-        BankAccountDTO bankAccountDTO = new BankAccountDTO();
+        BankAccountDTOrequest bankAccountDTO = new BankAccountDTOrequest();
         bankAccountDTO.setTypeAccount("Conta Corrente");
         bankAccountDTO.setUserId(1L);
 

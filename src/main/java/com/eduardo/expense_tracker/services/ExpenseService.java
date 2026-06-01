@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.request.ExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
 import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
@@ -27,7 +27,7 @@ public class ExpenseService {
     private CategoryRepository categoryRepository;
 
 
-    public ExpenseDTO insertExpense(ExpenseDTO expenseDTO){
+    public ExpenseDTOrequest insertExpense(ExpenseDTOrequest expenseDTO){
         Expense expenseDB = new Expense();
 
         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expenseDTO.getMonthlyExpenseId())
@@ -48,7 +48,7 @@ public class ExpenseService {
 
         repository.save(expenseDB);
 
-        ExpenseDTO response = new ExpenseDTO();
+        ExpenseDTOrequest response = new ExpenseDTOrequest();
         response.setDescription(expenseDB.getDescription());
         response.setAmount(expenseDB.getAmount());
         response.setExpenseMoment(expenseDB.getExpenseMoment());

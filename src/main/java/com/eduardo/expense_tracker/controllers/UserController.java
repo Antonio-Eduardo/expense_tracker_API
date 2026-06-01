@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.request.UserDTO;
+import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,7 +46,7 @@ public class UserController {
     @Operation(summary = "Atualizar um usuário pelo Id")
     @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTO user) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDTOrequest user) {
         return ResponseEntity.ok().body(userService.updateUser(id, user));
     }
 }

@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.request.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.services.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class BankAccountController {
         return ResponseEntity.ok().body(service.findBankAccountById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<BankAccount> insertBankAccount(@RequestBody BankAccountDTO bankAccount) {
+    public ResponseEntity<BankAccount> insertBankAccount(@RequestBody BankAccountDTOrequest bankAccount) {
         BankAccount savedBankAccount = service.insertBankAccount(bankAccount);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedBankAccount.getId()).toUri();
         return ResponseEntity.created(uri).body(savedBankAccount);

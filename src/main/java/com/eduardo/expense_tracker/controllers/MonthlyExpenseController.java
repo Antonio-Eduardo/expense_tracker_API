@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTO;
+import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTOrequest;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.services.MonthlyExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class MonthlyExpenseController {
         return ResponseEntity.ok().body(monthlyExpenseService.findMonthlyExpenseById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<MonthlyExpense> insertMonthlyExpense(@RequestBody MonthlyExpenseDTO monthlyExpenseDTO) {
+    public ResponseEntity<MonthlyExpense> insertMonthlyExpense(@RequestBody MonthlyExpenseDTOrequest monthlyExpenseDTO) {
         MonthlyExpense monthlyExpense = monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(monthlyExpense.getId()).toUri();
         return ResponseEntity.created(uri).body(monthlyExpense);

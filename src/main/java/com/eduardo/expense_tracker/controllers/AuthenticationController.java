@@ -1,8 +1,8 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.request.AuthenticationDTO;
-import com.eduardo.expense_tracker.dtos.request.LoginResponseDTO;
-import com.eduardo.expense_tracker.dtos.request.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.request.AuthenticationDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.LoginResponseDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.infra.security.TokenService;
 import com.eduardo.expense_tracker.repositories.UserRepository;
@@ -31,22 +31,22 @@ public class AuthenticationController {
     @Autowired
     private UserService userService;
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
+    public ResponseEntity login(@RequestBody @Valid AuthenticationDTOrequest data){
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
         var token = tokenService.generateToken((User) auth.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTOrequest(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO data){
+    public ResponseEntity register(@RequestBody @Valid RegisterDTOrequest data){
         if (this.userRepository.findByEmail(data.email()).isPresent()) return ResponseEntity.badRequest().body("Email already in use");
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-        RegisterDTO registerDTO = new RegisterDTO(data.email(), encryptedPassword, data.role());
+        RegisterDTOrequest registerDTO = new RegisterDTOrequest(data.email(), encryptedPassword, data.role());
 
 
         return ResponseEntity.ok().body(userService.createUser(registerDTO));

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class UserDTOresponse {
+    private Long id;
     public String name;
     public String cpf;
     public String phone;

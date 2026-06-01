@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.request.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
@@ -20,7 +20,7 @@ public class BankAccountService {
     @Autowired
     private UserRepository userRepository;
 
-    public BankAccount insertBankAccount(BankAccountDTO bankAccount){
+    public BankAccount insertBankAccount(BankAccountDTOrequest bankAccount){
         BankAccount bankAccountDB = new BankAccount();
         User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + bankAccount.getUserId()));
         bankAccountDB.setTypeAccount(bankAccount.getTypeAccount());

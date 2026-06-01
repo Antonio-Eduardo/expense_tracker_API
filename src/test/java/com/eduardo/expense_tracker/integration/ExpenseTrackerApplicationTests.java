@@ -61,7 +61,7 @@ class ExpenseTrackerApplicationTests {
 	}
 	@Test
 	void deveriaDescontarDoMensalEBanco() {
-		RegisterDTO registerDTO = new RegisterDTO("eduardo@gmail.com", "password", UserRole.USER);
+		RegisterDTOrequest registerDTO = new RegisterDTOrequest("eduardo@gmail.com", "password", UserRole.USER);
 		userService.createUser(registerDTO);
 		User userfound = userService.findByEmail(registerDTO.email());
 
@@ -70,7 +70,7 @@ class ExpenseTrackerApplicationTests {
 		category.setNotifyLimit(new BigDecimal(200));
 		categoryServices.insertCategory(category);
 
-		LocationDTO location = new LocationDTO();
+		LocationDTOrequest location = new LocationDTOrequest();
 		location.setCity("São Paulo");
 		location.setState("SP");
 		location.setAddress1("Rua A, 123");
@@ -78,7 +78,7 @@ class ExpenseTrackerApplicationTests {
 		location.setZipCode("12345-678");
 		locationService.insertLocation(location);
 
-		UserDTO userDTO = new UserDTO();
+		UserDTOrequest userDTO = new UserDTOrequest();
 		userDTO.setName("Eduardo");
 		userDTO.setCpf("12345678900");
 		userDTO.setPhone("11999999999");
@@ -87,7 +87,7 @@ class ExpenseTrackerApplicationTests {
 		userService.updateUser(userfound.getId(), userDTO);
 		User user = userService.userFindById(1L);
 
-		BankAccountDTO bankAccount = new BankAccountDTO();
+		BankAccountDTOrequest bankAccount = new BankAccountDTOrequest();
 		bankAccount.setBalance(new BigDecimal(1000));
 		bankAccount.setTypeAccount("Caixa");
 		bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T00:00:00Z"));
@@ -95,7 +95,7 @@ class ExpenseTrackerApplicationTests {
 		bankAccountService.insertBankAccount(bankAccount);
 		BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
 
-		MonthlyExpenseDTO monthlyExpenseDTO = new MonthlyExpenseDTO();
+		MonthlyExpenseDTOrequest monthlyExpenseDTO = new MonthlyExpenseDTOrequest();
 		monthlyExpenseDTO.setMonthTotal(new BigDecimal(0));
 		monthlyExpenseDTO.setMonth("Maio");
 		monthlyExpenseDTO.setLimitExpense(new BigDecimal(500));
@@ -103,7 +103,7 @@ class ExpenseTrackerApplicationTests {
 		monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
 		MonthlyExpense monthlyExpense = monthlyExpenseService.findMonthlyExpenseById(1L);
 
-		ExpenseDTO expenseDTO = new ExpenseDTO();
+		ExpenseDTOrequest expenseDTO = new ExpenseDTOrequest();
 		expenseDTO.setAmount(new BigDecimal(100));
 		expenseDTO.setDescription("Compra no supermercado");
 		expenseDTO.setExpenseMoment(Instant.now());
@@ -113,7 +113,7 @@ class ExpenseTrackerApplicationTests {
 		Expense expense = expenseService.findExpenseById(1L);
 		expenseService.processExpense(expense);
 
-		ExpenseDTO expenseDTO1 = new ExpenseDTO();
+		ExpenseDTOrequest expenseDTO1 = new ExpenseDTOrequest();
 		expenseDTO1.setAmount(new BigDecimal(150));
 		expenseDTO1.setDescription("Compra no mercado");
 		expenseDTO1.setExpenseMoment(Instant.now());

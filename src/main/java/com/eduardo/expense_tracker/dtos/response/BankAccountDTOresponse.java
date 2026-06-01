@@ -7,6 +7,7 @@ import java.time.Instant;
 
 @Data
 public class BankAccountDTOresponse {
+    private Long id;
     private BigDecimal balance;
     private String typeAccount;
     private Instant creditCardClosingDate;

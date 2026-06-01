@@ -11,6 +11,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExpenseDTOresponse {
+    private Long id;
     private BigDecimal amount;
     private String description;
     private Instant expenseMoment;

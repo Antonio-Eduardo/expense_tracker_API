@@ -1,6 +1,6 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.request.LocationDTO;
+import com.eduardo.expense_tracker.dtos.request.LocationDTOrequest;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import jakarta.transaction.Transactional;
@@ -15,7 +15,7 @@ public class LocationService {
     private LocationRepository repository;
 
     @Transactional
-     public LocationDTO insertLocation(LocationDTO locationDTO){
+     public LocationDTOrequest insertLocation(LocationDTOrequest locationDTO){
         Location location = new Location();
         location.setCity(locationDTO.getCity());
         location.setState(locationDTO.getState());
@@ -25,7 +25,7 @@ public class LocationService {
 
         Location savedLocation = repository.save(location);
 
-        LocationDTO response = new LocationDTO();
+        LocationDTOrequest response = new LocationDTOrequest();
         response.setCity(savedLocation.getCity());
         response.setZipCode(savedLocation.getZipCode());
         response.setState(savedLocation.getState());
@@ -44,7 +44,7 @@ public class LocationService {
      public void deleteLocation(Long id) {
          repository.deleteById(id);
      }
-     public void updateData(Location locationFind, LocationDTO obj){
+     public void updateData(Location locationFind, LocationDTOrequest obj){
         locationFind.setCity(obj.getCity());
         locationFind.setState(obj.getState());
         locationFind.setAddress1(obj.getAddress1());
@@ -52,7 +52,7 @@ public class LocationService {
         locationFind.setZipCode(obj.getZipCode());
      }
      @Transactional
-     public Location locationUpdate(Long id, LocationDTO obj) {
+     public Location locationUpdate(Long id, LocationDTOrequest obj) {
          Location locationFind = repository.findById(id).orElse(null);
          if (locationFind != null) {
              updateData(locationFind, obj);
