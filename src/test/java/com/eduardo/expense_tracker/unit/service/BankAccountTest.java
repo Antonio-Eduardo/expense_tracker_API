@@ -93,15 +93,14 @@ public class BankAccountTest {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setTypeAccount("antigo");
         bankAccount.setId(1L);
-        bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T10:15:30Z"));
 
-        BankAccount bankAccountdto = new BankAccount();
-        bankAccount.setTypeAccount("novo");
+        BankAccountDTOrequest bankAccountDTOrequest = new BankAccountDTOrequest();
+        bankAccountDTOrequest.setTypeAccount("novo");
 
         when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
         when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
-        BankAccountDTOresponse result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountdto);
+        BankAccountDTOresponse result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountDTOrequest);
 
         assertNotNull(result);
         assertEquals("novo", result.getTypeAccount());

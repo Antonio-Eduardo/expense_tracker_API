@@ -40,7 +40,7 @@ public class BankAccountController {
         return ResponseEntity.noContent().build();
     }
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<BankAccountDTOresponse> updateBankAccount(@PathVariable Long id, @RequestBody BankAccount bankAccount) {
+    public ResponseEntity<BankAccountDTOresponse> updateBankAccount(@PathVariable Long id, @RequestBody BankAccountDTOrequest bankAccount) {
         service.updateBankAccount(id, bankAccount);
         return ResponseEntity.ok().body(service.findBankAccountById(id));
     }

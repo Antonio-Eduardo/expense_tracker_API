@@ -50,7 +50,7 @@ public class BankAccountService {
         repository.deleteById(id);
     }
 
-    public void updateData(BankAccount bankAccountFind, BankAccount obj){
+    public void updateData(BankAccount bankAccountFind, BankAccountDTOrequest obj){
         if (obj != null) {
             bankAccountFind.setTypeAccount(obj.getTypeAccount());
         }
@@ -59,7 +59,7 @@ public class BankAccountService {
         }
     }
 
-    public BankAccountDTOresponse updateBankAccount(Long id, BankAccount obj){
+    public BankAccountDTOresponse updateBankAccount(Long id, BankAccountDTOrequest obj){
         BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);
 
@@ -68,15 +68,21 @@ public class BankAccountService {
     }
     public BankAccountDTOresponse convertToBankAccountResponseDTO(BankAccount bk){
         BankAccountDTOresponse response = new BankAccountDTOresponse();
-        response.setId(bk.getId());
-        response.setTypeAccount(bk.getTypeAccount());
-        response.setBalance(bk.getBalance());
-        if (bk.getUser() != null){
-            response.setUserId(bk.getUser().getId());
-        }else {
-            response.setUserId(null);
+        if (bk.getId() != null) {
+            response.setId(bk.getId());
         }
-        response.setCreditCardClosingDate(bk.getCreditCardClosingDate());
+        if (bk.getTypeAccount() != null) {
+            response.setTypeAccount(bk.getTypeAccount());
+        }
+        if (bk.getBalance() != null) {
+            response.setBalance(bk.getBalance());
+        }
+        if (bk.getUser() != null) {
+            response.setUserId(bk.getUser().getId());
+        }
+        if (bk.getCreditCardClosingDate() != null) {
+            response.setCreditCardClosingDate(bk.getCreditCardClosingDate());
+        }
         return response;
     }
 }
