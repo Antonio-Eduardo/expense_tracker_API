@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_category")
@@ -27,7 +28,7 @@ public class Category {
     @JsonIgnore
     @ToStringExclude
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private java.util.Set<Expense> expenses;
+    private Set<Expense> expenses;
 
     @Override
     public boolean equals(Object o) {

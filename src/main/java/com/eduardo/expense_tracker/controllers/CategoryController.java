@@ -18,7 +18,7 @@ public class CategoryController {
     private CategoryService categoryServices;
 
     @GetMapping
-    public ResponseEntity<List<Category>> findAll(){
+    public ResponseEntity<List<CategoryDTOresponse>> findAll(){
         return ResponseEntity.ok().body(categoryServices.findAllCategories());
     }
 
