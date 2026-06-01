@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.unit.service;
 
 import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.services.BankAccountService;
@@ -48,7 +49,7 @@ public class BankAccountTest {
         when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
         when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
-        BankAccount result = bankAccountService.insertBankAccount(bankAccountDTO);
+        BankAccountDTOresponse result = bankAccountService.insertBankAccount(bankAccountDTO);
 
         assertNotNull(result);
         assertEquals("Conta Corrente", result.getTypeAccount());
@@ -61,7 +62,7 @@ public class BankAccountTest {
 
         when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
 
-        BankAccount result = bankAccountService.findBankAccountById(bankAccount.getId());
+        BankAccountDTOresponse result = bankAccountService.findBankAccountById(bankAccount.getId());
 
         assertNotNull(result);
         assertEquals(1L,result.getId());
@@ -74,7 +75,7 @@ public class BankAccountTest {
 
         when(bankAccountRepository.findAll()).thenReturn(bankAccounts);
 
-        List<BankAccount> result = bankAccountService.findAllBankAccounts();
+        List<BankAccountDTOresponse> result = bankAccountService.findAllBankAccounts();
 
         assertNotNull(result);
         assertEquals(2,result.size());
@@ -100,7 +101,7 @@ public class BankAccountTest {
         when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
         when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
-        BankAccount result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountdto);
+        BankAccountDTOresponse result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountdto);
 
         assertNotNull(result);
         assertEquals("novo", result.getTypeAccount());

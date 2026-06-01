@@ -63,7 +63,7 @@ class ExpenseTrackerApplicationTests {
 	void deveriaDescontarDoMensalEBanco() {
 		RegisterDTOrequest registerDTO = new RegisterDTOrequest("eduardo@gmail.com", "password", UserRole.USER);
 		userService.createUser(registerDTO);
-		User userfound = userService.findByEmail(registerDTO.email());
+		//User userfound = userService.findByEmail(registerDTO.email());
 
 		CategoryDTOrequest category = new CategoryDTOrequest();
 		category.setName("Alimentação");
@@ -84,22 +84,22 @@ class ExpenseTrackerApplicationTests {
 		userDTO.setPhone("11999999999");
 		userDTO.setBirthDate(LocalDate.parse("2003-06-18"));
 		//userDTO.setLocationId(location.getId());
-		userService.updateUser(userfound.getId(), userDTO);
-		User user = userService.userFindById(1L);
+		//userService.updateUser(userfound.getId(), userDTO);
+		//User user = userService.userFindById(1L);
 
 		BankAccountDTOrequest bankAccount = new BankAccountDTOrequest();
 		bankAccount.setBalance(new BigDecimal(1000));
 		bankAccount.setTypeAccount("Caixa");
 		bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T00:00:00Z"));
-		bankAccount.setUserId(user.getId());
+		//bankAccount.setUserId(user.getId());
 		bankAccountService.insertBankAccount(bankAccount);
-		BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
+		//BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
 
 		MonthlyExpenseDTOrequest monthlyExpenseDTO = new MonthlyExpenseDTOrequest();
 		monthlyExpenseDTO.setMonthTotal(new BigDecimal(0));
 		monthlyExpenseDTO.setMonth("Maio");
 		monthlyExpenseDTO.setLimitExpense(new BigDecimal(500));
-		monthlyExpenseDTO.setBankAccountId(bankAccountDB.getId());
+		//monthlyExpenseDTO.setBankAccountId(bankAccountDB.getId());
 		monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
 		MonthlyExpense monthlyExpense = monthlyExpenseService.findMonthlyExpenseById(1L);
 

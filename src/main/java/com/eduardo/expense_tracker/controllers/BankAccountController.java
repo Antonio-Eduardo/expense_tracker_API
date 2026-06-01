@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.controllers;
 
 import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.services.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +20,17 @@ public class BankAccountController {
     private BankAccountService service;
 
     @GetMapping
-    public ResponseEntity<List<BankAccount>> findAll(){
+    public ResponseEntity<List<BankAccountDTOresponse>> findAll(){
         return ResponseEntity.ok().body(service.findAllBankAccounts());
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<BankAccount> findById(@PathVariable Long id) {
+    public ResponseEntity<BankAccountDTOresponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(service.findBankAccountById(id));
     }
     @PostMapping(value = "/insert")
-    public ResponseEntity<BankAccount> insertBankAccount(@RequestBody BankAccountDTOrequest bankAccount) {
-        BankAccount savedBankAccount = service.insertBankAccount(bankAccount);
+    public ResponseEntity<BankAccountDTOresponse> insertBankAccount(@RequestBody BankAccountDTOrequest bankAccount) {
+        BankAccountDTOresponse savedBankAccount = service.insertBankAccount(bankAccount);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedBankAccount.getId()).toUri();
         return ResponseEntity.created(uri).body(savedBankAccount);
     }
@@ -39,7 +40,7 @@ public class BankAccountController {
         return ResponseEntity.noContent().build();
     }
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<BankAccount> updateBankAccount(@PathVariable Long id, @RequestBody BankAccount bankAccount) {
+    public ResponseEntity<BankAccountDTOresponse> updateBankAccount(@PathVariable Long id, @RequestBody BankAccount bankAccount) {
         service.updateBankAccount(id, bankAccount);
         return ResponseEntity.ok().body(service.findBankAccountById(id));
     }
