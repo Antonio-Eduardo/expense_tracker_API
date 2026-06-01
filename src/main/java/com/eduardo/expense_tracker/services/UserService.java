@@ -2,6 +2,7 @@ package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
 import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
@@ -24,48 +25,52 @@ public class UserService {
     public User userFindById(Long id){
         return repository.findById(id).orElse(null);
     }
+
     public List<User> userFindAll(){
         return repository.findAll();
     }
+
     public void deleteUser(Long id){
         repository.deleteById(id);
     }
-     public User updateUser(Long id, UserDTOrequest obj){
 
-         User userFind = repository.findById(id).orElse(null);
-         if (userFind != null) {
-             updateData(userFind, obj);
-             return repository.save(userFind);
-         }
-         return null;
+     public UserDTOresponse updateUser(Long id, UserDTOrequest obj){
+         User userFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found" + id));
+         updateData(userFind,obj);
+         userFind = repository.save(userFind);
+         return convertToResponseDTO(userFind);
      }
      private void updateData(User userFind, UserDTOrequest obj) {
-        if (obj.getName() != null) {
+         Location location = locationRepository.findById(obj.getLocationId())
+                 .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + obj.getLocationId()));
+
             userFind.setName(obj.getName());
-        }
-        if (obj.getPhone() != null) {
             userFind.setPhone(obj.getPhone());
-        }
-        if (obj.getLocationId() != null) {
-            Location location = locationRepository.findById(obj.getLocationId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + obj.getLocationId()));
             userFind.setLocation(location);
-        }
-        if (obj.getCpf() != null) {
             userFind.setCpf(obj.getCpf());
-        }
-        if (obj.getBirthDate() != null) {
             userFind.setBirthDate(obj.getBirthDate());
-        }
      }
-    public User createUser(RegisterDTOrequest data) {
+    public UserDTOresponse createUser(RegisterDTOrequest data) {
         User user = new User();
         user.setEmail(data.email());
         user.setPassword(data.password());
         user.setRole(data.role());
-        return repository.save(user);
+        user = repository.save(user);
+        return convertToResponseDTO(user);
     }
     public User findByEmail(String email) {
         return repository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+    public UserDTOresponse convertToResponseDTO(User user){
+        UserDTOresponse response = new UserDTOresponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setCpf(user.getCpf());
+        response.setPhone(user.getEmail());
+        response.setBirthDate(user.getBirthDate());
+        if (user.getLocation() != null){
+            response.setLocationId(user.getLocation().getId());
+        }
+        return response;
     }
 }
