@@ -8,9 +8,11 @@ import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.exceptions.DuplicateResourceException;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -69,6 +71,9 @@ public class UserService {
      }
      @Transactional
     public RegisterDTOresponse createUser(RegisterDTOrequest data) {
+        if (repository.findByEmail(data.email()).isPresent()) {
+            throw new DuplicateResourceException("Email already in use: " + data.email());
+        }
         User user = new User();
         user.setEmail(data.email());
         user.setPassword(data.password());
