@@ -9,5 +9,4 @@ import java.util.List;
 public class CategoryDTOrequest {
     private BigDecimal notifyLimit;
     private String name;
-    private List<ExpenseDTOrequest> expenseDTOS;
 }

@@ -28,6 +28,7 @@ public class LocationService {
         Location savedLocation = repository.save(location);
 
         LocationDTOresponse response = new LocationDTOresponse();
+        response.setId(savedLocation.getId());
         response.setCity(savedLocation.getCity());
         response.setZipCode(savedLocation.getZipCode());
         response.setState(savedLocation.getState());

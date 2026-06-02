@@ -27,9 +27,18 @@ public class SwaggerConfig {
                                 "            - Histórico mensal de gastos\n" +
                                 "            \n" +
                                 "            ## Autenticação\n" +
-                                "            Todos os endpoints (exceto /auth) requerem Bearer Token JWT.\n" +
-                                "            Para gerar o token, " + "Registre um Email - Senha - Role, no endpoint POST /auth/register.\n" +
-                                "            Para receber o token, " + "Faça Login com o usuário registrado no endpoint POST /auth/login.")
+                                "            Todos os endpoints, exceto `/auth/**`, requerem Bearer Token JWT\n\n" +
+                                "           ### Como autenticar \n" +
+                                "            - Registre um usuário no endpoint `POST /auth/register`\n" +
+                                "            - Faça login no endpoint `POST /auth/login`\n" +
+                                "            - Copie o token JWT retornado\n" +
+                                "            - Clique em Authorize no Swagger\n" +
+                                "            - Informe: \n" +
+                                "            - Bearer seu-token\n\n"+
+                                "           #### Links\n" +
+                                "             - [GitHub](https://github.com/Antonio-Eduardo)\n" +
+                                "             - [Linkedin](https://www.linkedin.com/in/antonio-eduardo-moreira-oliveira-418828242/)"
+                        )
                         .contact(new Contact()
                                 .name("Antonio Eduardo")
                                 .email("eduardo.moreira.java@gmail.com")))

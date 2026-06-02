@@ -27,7 +27,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // 1. Desativa a barreira de frames
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
                         .requestMatchers(
@@ -36,7 +36,7 @@ public class SecurityConfiguration {
                                 "/api-docs/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers("/h2-console", "/h2-console/**").permitAll() // 2. Libera a rota e as sub-rotas por String direta
+                        .requestMatchers("/h2-console", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(sec, UsernamePasswordAuthenticationFilter.class)

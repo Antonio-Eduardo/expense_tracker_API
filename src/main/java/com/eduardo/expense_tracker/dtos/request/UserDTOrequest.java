@@ -9,7 +9,6 @@ public class UserDTOrequest {
     public String name;
     public String cpf;
     public String phone;
-    public String email;
     public LocalDate birthDate;
     public Long locationId;
 }
