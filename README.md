@@ -36,18 +36,20 @@ As principais funcionalidades implementadas incluem:
 
 - Autenticação stateless com JWT (registro, login e proteção de rotas)
 - Controle de roles de acesso (`ADMIN` e `USER`)
+- CORS configurado para aceitar requisições de qualquer origem
 - Tratamento global de exceções com respostas padronizadas (`@RestControllerAdvice`)
 - Exceções customizadas por tipo: recurso não encontrado, duplicidade e regra de negócio
 - Cadastro e gerenciamento de usuários com localização
 - Contas bancárias associadas a cada usuário
 - Registro de despesas agrupadas por mês (`MonthlyExpense`)
-- Categorização de gastos com limite de notificação por categoria
-- Controllers REST completos para todos os recursos
-- DTOs para desacoplamento entre camada de transporte e entidades
+- Categorização de gastos com limite de notificação por categoria e listagem de despesas vinculadas
+- Controllers REST completos com documentação Swagger/OpenAPI para todos os recursos
+- DTOs de request e response para desacoplamento entre camada de transporte e entidades
 - Processamento de despesas: atualiza automaticamente o total mensal e o saldo da conta bancária
 - Validação de saldo insuficiente ao fechar o mês
+- Redirecionamento automático de `/` para o Swagger UI
 - Testes de integração com banco PostgreSQL real (Testcontainers)
-- Testes unitários de serviços com Mockito
+- Testes unitários completos de todos os serviços com Mockito
 
 ---
 
@@ -67,6 +69,7 @@ As principais funcionalidades implementadas incluem:
 | Mockito | — | Mocks nos testes unitários |
 | Flyway | — | Versionamento do schema do banco |
 | Lombok | — | Redução de boilerplate |
+| Swagger / SpringDoc OpenAPI | — | Documentação interativa da API |
 | Maven | — | Gerenciamento de dependências |
 
 ---
@@ -84,8 +87,11 @@ src/
 │       │   ├── CategoryController.java
 │       │   ├── MonthlyExpenseController.java
 │       │   ├── ExpenseController.java
-│       │   └── LocationController.java
+│       │   ├── LocationController.java
+│       │   └── HomeController.java             # Redireciona / para o Swagger UI
 │       ├── dtos/
+│       │   ├── request/                        # DTOs de entrada para cada recurso
+│       │   └── response/                       # DTOs de saída para cada recurso
 │       ├── entities/
 │       │   ├── user/
 │       │   │   ├── User.java                   # Implementa UserDetails
@@ -99,24 +105,39 @@ src/
 │       │   ├── exception/
 │       │   │   ├── GlobalExceptionHandler.java # Tratamento global (@RestControllerAdvice)
 │       │   │   └── StandartError.java
-│       │   ├── AuthorizationService.java
-│       │   ├── SecurityConfiguration.java
-│       │   ├── SecurityFilter.java             # Intercepta requisições e valida JWT
-│       │   └── TokenService.java
+│       │   └── security/
+│       │       ├── AuthorizationService.java
+│       │       ├── SecurityConfiguration.java  # CORS + JWT filter chain
+│       │       ├── SecurityFilter.java         # Intercepta requisições e valida JWT
+│       │       └── TokenService.java
 │       ├── repositories/
 │       ├── services/
+│       │   ├── BankAccountService.java
+│       │   ├── CategoryService.java
+│       │   ├── ExpenseService.java
+│       │   ├── LocationService.java
+│       │   ├── MonthlyExpenseService.java
+│       │   ├── UserService.java
 │       │   └── exceptions/
 │       │       ├── ResourceNotFoundException.java
 │       │       ├── DuplicateResourceException.java
 │       │       └── BusinessException.java
+│       ├── swagger/config/
+│       │   └── SwaggerConfig.java              # Configuração do OpenAPI com autenticação JWT
 │       └── ExpenseTrackerApplication.java
 └── test/
     └── java/com/eduardo/expense_tracker/
         ├── integration/
-        │   └── ExpenseTrackerApplicationTests.java
-        └── unit/
-            └── service/
-                └── UserServiceTest.java
+        │   └── ExpenseIntegrationTest.java     # Testes de integração com Testcontainers
+        ├── unit/service/
+        │   ├── BankAccountTest.java
+        │   ├── CategoryTest.java
+        │   ├── ExpenseTest.java
+        │   ├── LocationTest.java
+        │   ├── MonthlyExpenseTest.java
+        │   └── UserServiceTest.java
+        ├── TestcontainersConfiguration.java
+        └── TestExpenseTrackerApplication.java
 ```
 
 ---
@@ -131,20 +152,20 @@ Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──�
 
 - **User** — nome, email, senha (BCrypt), CPF, telefone, data de nascimento, role e localização. Implementa `UserDetails`
 - **BankAccount** — tipo de conta, saldo, data de fechamento do cartão
-- **Category** — nome e limite de notificação de gastos
+- **Category** — nome, limite de notificação de gastos e lista de despesas vinculadas
 - **MonthlyExpense** — mês de referência, total gasto, limite mensal e conta bancária vinculada
 - **Expense** — valor, descrição, momento do gasto, categoria e mês de referência
 
 **Fluxo de processamento:**
 
-1. `ExpenseService.processExpense()` — adiciona o valor ao total do mês e desconta do limite da categoria. Lança `BusinessException` se exceder o limite
+1. `ExpenseService.processExpense()` — adiciona o valor ao total do mês e desconta do limite. Lança `BusinessException` se exceder o limite
 2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta. Lança `BusinessException` se saldo insuficiente
 
 ---
 
 ## Autenticação
 
-A API utiliza autenticação **stateless com JWT**. Rotas públicas: `/auth/register` e `/auth/login`.
+A API utiliza autenticação **stateless com JWT**. Rotas públicas: `/auth/register`, `/auth/login` e `/swagger-ui/**`.
 
 ### Registro
 
@@ -225,6 +246,7 @@ Token válido por **24 horas**. Senha armazenada com BCrypt.
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/category` | Lista todas as categorias |
+| GET | `/category/{id}` | Busca categoria por ID |
 | POST | `/category/insert` | Cadastra nova categoria |
 | PUT | `/category/update/{id}` | Atualiza categoria |
 | DELETE | `/category/delete/{id}` | Remove categoria |
@@ -234,6 +256,7 @@ Token válido por **24 horas**. Senha armazenada com BCrypt.
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/month` | Lista todos os meses |
+| GET | `/month/{id}` | Busca despesa mensal por ID |
 | POST | `/month/insert` | Cadastra novo mês |
 | PUT | `/month/update/{id}` | Atualiza limite de gasto |
 | DELETE | `/month/delete/{id}` | Remove mês |
@@ -243,6 +266,7 @@ Token válido por **24 horas**. Senha armazenada com BCrypt.
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/expense` | Lista todas as despesas |
+| GET | `/expense/{id}` | Busca despesa por ID |
 | POST | `/expense/insert` | Cadastra nova despesa |
 | DELETE | `/expense/delete/{id}` | Remove despesa |
 
@@ -251,6 +275,7 @@ Token válido por **24 horas**. Senha armazenada com BCrypt.
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/location` | Lista todas as localizações |
+| GET | `/location/{id}` | Busca localização por ID |
 | POST | `/location/insert` | Cadastra nova localização |
 | PUT | `/location/update/{id}` | Atualiza localização |
 | DELETE | `/location/delete/{id}` | Remove localização |
@@ -315,6 +340,8 @@ api.security.token.secret=seu-segredo-jwt-aqui
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
+Acesse o Swagger UI em: `http://localhost:8080`
+
 ---
 
 ## Testes
@@ -325,20 +352,32 @@ mvn test
 
 ### Testes de Integração (Testcontainers)
 
-Valida o fluxo completo contra PostgreSQL real em container:
-- Criação de localização, usuário, conta bancária, categoria e despesas
-- Processamento de despesas com atualização de total e limite
-- Desconto do total mensal no saldo da conta bancária
+Valida o fluxo completo contra PostgreSQL real em container (`ExpenseIntegrationTest`):
+
+- Criação de conta bancária, categoria e despesa mensal
+- `POST /expense/insert` — criação e persistência de despesa
+- `GET /expense/{id}` — busca por ID
+- `GET /expense` — listagem completa
+- `DELETE /expense/delete/{id}` — remoção
+- Retorno 404 para recurso inexistente
 
 ### Testes Unitários (Mockito)
 
-Cobrem os principais fluxos do `UserService` com repositórios mockados.
+Cobrem todos os serviços da aplicação com repositórios mockados:
+
+| Classe de Teste | Serviço Testado | Cenários Cobertos |
+|---|---|---|
+| `BankAccountTest` | `BankAccountService` | inserir, buscar por ID, listar, deletar, atualizar |
+| `CategoryTest` | `CategoryService` | inserir, buscar por ID, listar, deletar, atualizar |
+| `ExpenseTest` | `ExpenseService` | inserir, buscar por ID, listar, deletar |
+| `LocationTest` | `LocationService` | inserir, buscar por ID, listar, deletar, atualizar |
+| `MonthlyExpenseTest` | `MonthlyExpenseService` | inserir, buscar por ID, listar, deletar, atualizar |
+| `UserServiceTest` | `UserService` | atualizar, deletar, criar, buscar por email, listar |
 
 ---
 
 ## Melhorias Futuras
 
 - [ ] Notificação ao atingir limite de categoria
-- [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
-- [ ] Testes unitários para os demais serviços
-- [ ] Documentação da API com Swagger/OpenAPI
+- [ ] Filtro de despesas por período, categoria ou conta
+- [ ] Endpoint de resumo financeiro por usuário
