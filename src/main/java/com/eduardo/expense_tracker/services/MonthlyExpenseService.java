@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.MonthlyExpenseDTOresponse;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
@@ -23,7 +24,7 @@ public class MonthlyExpenseService {
     BankAccountRepository bankAccountRepository;
 
     @Transactional
-    public MonthlyExpense insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){
+    public MonthlyExpenseDTOresponse insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){
         MonthlyExpense monthlyExpenseDB = new MonthlyExpense();
         BankAccount bankAccount = bankAccountRepository.findById(monthlyExpenseDTO.getBankAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpenseDTO.getBankAccountId()));
@@ -31,15 +32,17 @@ public class MonthlyExpenseService {
         monthlyExpenseDB.setBankAccount(bankAccount);
         monthlyExpenseDB.setMonthTotal(monthlyExpenseDTO.getMonthTotal());
         monthlyExpenseDB.setMonth(monthlyExpenseDTO.getMonth());
-        return repository.save(monthlyExpenseDB);
+        monthlyExpenseDB = repository.save(monthlyExpenseDB);
+        return convertDTOresponse(monthlyExpenseDB);
     }
 
-    public MonthlyExpense findMonthlyExpenseById(Long id){
-        return repository.findById(id).orElse(null);
+    public MonthlyExpenseDTOresponse findMonthlyExpenseById(Long id){
+       MonthlyExpense monthlyExpense = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + id));
+        return convertDTOresponse(monthlyExpense);
     }
 
-    public List<MonthlyExpense> findAllMonthlyExpenses(){
-       return repository.findAll();
+    public List<MonthlyExpenseDTOresponse> findAllMonthlyExpenses(){
+       return repository.findAll().stream().map(this::convertDTOresponse).toList();
     }
 
     @Transactional
@@ -48,13 +51,11 @@ public class MonthlyExpenseService {
     }
 
     @Transactional
-    public MonthlyExpense updateMonthlyExpense(Long id, MonthlyExpense obj){
-            MonthlyExpense monthlyExpenseFind = repository.findById(id).orElse(null);
-            if (monthlyExpenseFind != null) {
+    public MonthlyExpenseDTOresponse updateMonthlyExpense(Long id, MonthlyExpense obj){
+            MonthlyExpense monthlyExpenseFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + id));
                 updateData(monthlyExpenseFind, obj);
-                return repository.save(monthlyExpenseFind);
-            }
-            return null;
+                monthlyExpenseFind = repository.save(monthlyExpenseFind);
+                return convertDTOresponse(monthlyExpenseFind);
         }
     public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpense obj) {
             monthlyExpenseFind.setLimitExpense(obj.getLimitExpense());
@@ -72,4 +73,15 @@ public class MonthlyExpenseService {
             }
         }
 
-}
+        public MonthlyExpenseDTOresponse convertDTOresponse(MonthlyExpense monthlyExpense) {
+            MonthlyExpenseDTOresponse medr = new MonthlyExpenseDTOresponse();
+            medr.setId(monthlyExpense.getId());
+            medr.setLimitExpense(monthlyExpense.getLimitExpense());
+            medr.setMonthTotal(monthlyExpense.getMonthTotal());
+            medr.setMonth(monthlyExpense.getMonth());
+            if (monthlyExpense.getBankAccount() != null) {
+                medr.setBankAccountId(monthlyExpense.getBankAccount().getId());
+            }
+            return medr;
+        }
+    }
