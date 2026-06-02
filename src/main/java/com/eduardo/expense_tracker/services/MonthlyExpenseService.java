@@ -7,6 +7,7 @@ import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
 import com.eduardo.expense_tracker.services.exceptions.BusinessException;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class MonthlyExpenseService {
     @Autowired
     BankAccountRepository bankAccountRepository;
 
+    @Transactional
     public MonthlyExpense insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){
         MonthlyExpense monthlyExpenseDB = new MonthlyExpense();
         BankAccount bankAccount = bankAccountRepository.findById(monthlyExpenseDTO.getBankAccountId())
@@ -35,13 +37,18 @@ public class MonthlyExpenseService {
     public MonthlyExpense findMonthlyExpenseById(Long id){
         return repository.findById(id).orElse(null);
     }
+
     public List<MonthlyExpense> findAllMonthlyExpenses(){
        return repository.findAll();
     }
+
+    @Transactional
     public void deleteMonthlyExpense(Long id) {
         repository.deleteById(id);
     }
-        public MonthlyExpense updateMonthlyExpense(Long id, MonthlyExpense obj){
+
+    @Transactional
+    public MonthlyExpense updateMonthlyExpense(Long id, MonthlyExpense obj){
             MonthlyExpense monthlyExpenseFind = repository.findById(id).orElse(null);
             if (monthlyExpenseFind != null) {
                 updateData(monthlyExpenseFind, obj);
@@ -49,10 +56,11 @@ public class MonthlyExpenseService {
             }
             return null;
         }
-        public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpense obj) {
+    public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpense obj) {
             monthlyExpenseFind.setLimitExpense(obj.getLimitExpense());
         }
-       public void processMonthlyExpense(MonthlyExpense monthlyExpense){
+    @Transactional
+    public void processMonthlyExpense(MonthlyExpense monthlyExpense){
             BankAccount bankAccount = bankAccountRepository.findById(monthlyExpense.getBankAccount().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpense.getBankAccount().getId()));
             if (bankAccount.getBalance().compareTo(monthlyExpense.getMonthTotal()) < 0) {

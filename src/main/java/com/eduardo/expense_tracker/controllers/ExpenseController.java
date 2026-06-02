@@ -20,12 +20,12 @@ public class ExpenseController {
     private ExpenseService expenseService;
 
     @GetMapping
-    public ResponseEntity<List<Expense>> findAll() {
+    public ResponseEntity<List<ExpenseDTOresponse>> findAll() {
         return ResponseEntity.ok().body(expenseService.findAllExpenses());
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Expense> findById(@PathVariable Long id) {
+    public ResponseEntity<ExpenseDTOresponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok().body(expenseService.findExpenseById(id));
     }
     @PostMapping(value = "/insert")

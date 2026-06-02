@@ -8,6 +8,7 @@ import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class BankAccountService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional
     public BankAccountDTOresponse insertBankAccount(BankAccountDTOrequest bankAccount){
         BankAccount bankAccountDB = new BankAccount();
         User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + bankAccount.getUserId()));
@@ -46,6 +48,7 @@ public class BankAccountService {
         return repository.findAll().stream().map(this::convertToBankAccountResponseDTO).toList();
     }
 
+    @Transactional
     public void deleteBankAccount(Long id) {
         repository.deleteById(id);
     }
@@ -59,6 +62,7 @@ public class BankAccountService {
         }
     }
 
+    @Transactional
     public BankAccountDTOresponse updateBankAccount(Long id, BankAccountDTOrequest obj){
         BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);

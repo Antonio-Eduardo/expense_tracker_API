@@ -10,6 +10,7 @@ import com.eduardo.expense_tracker.repositories.ExpenseRepository;
 import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
 import com.eduardo.expense_tracker.services.exceptions.BusinessException;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,7 @@ public class ExpenseService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-
+    @Transactional
     public ExpenseDTOresponse insertExpense(ExpenseDTOrequest expenseDTO){
         Expense expenseDB = new Expense();
 
@@ -52,18 +53,21 @@ public class ExpenseService {
     }
 
 
-     public Expense findExpenseById(Long id){
-         return repository.findById(id).orElse(null);
+     public ExpenseDTOresponse findExpenseById(Long id){
+         Expense expense = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + id));
+         return convertToResponseDTO(expense);     }
+
+     public List<ExpenseDTOresponse> findAllExpenses(){
+
+        return repository.findAll().stream().map(this::convertToResponseDTO).collect(java.util.stream.Collectors.toList());
      }
 
-     public List<Expense> findAllExpenses(){
-         return repository.findAll();
-     }
-
+     @Transactional
      public void deleteExpense(Long id) {
          repository.deleteById(id);
      }
 
+     @Transactional
      public void processExpense(Expense expense) {
          MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpense().getId()).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + expense.getMonthlyExpense().getId()));
          if (expense.getAmount().compareTo(monthlyExpense.getLimitExpense()) > 0) {

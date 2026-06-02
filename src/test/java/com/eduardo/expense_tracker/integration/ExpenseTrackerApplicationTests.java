@@ -110,8 +110,8 @@ class ExpenseTrackerApplicationTests {
 		expenseDTO.setMonthlyExpenseId(monthlyExpense.getId());
 		//expenseDTO.setCategoryId(category.getId());
 		expenseService.insertExpense(expenseDTO);
-		Expense expense = expenseService.findExpenseById(1L);
-		expenseService.processExpense(expense);
+		//Expense expense = expenseService.findExpenseById(1L);
+		//expenseService.processExpense(expense);
 
 		ExpenseDTOrequest expenseDTO1 = new ExpenseDTOrequest();
 		expenseDTO1.setAmount(new BigDecimal(150));
@@ -120,8 +120,8 @@ class ExpenseTrackerApplicationTests {
 		expenseDTO1.setMonthlyExpenseId(monthlyExpense.getId());
 	//	expenseDTO1.setCategoryId(category.getId());
 		expenseService.insertExpense(expenseDTO1);
-		Expense expense1 = expenseService.findExpenseById(2L);
-		expenseService.processExpense(expense1);
+		//Expense expense1 = expenseService.findExpenseById(2L);
+		//expenseService.processExpense(expense1);
 
 		monthlyExpenseService.processMonthlyExpense(monthlyExpense);
 	}

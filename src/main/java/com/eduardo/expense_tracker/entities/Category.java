@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.builder.ToStringExclude;
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +25,7 @@ public class Category {
     private String name;
 
     @JsonIgnore
-    @ToStringExclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Expense> expenses;
 

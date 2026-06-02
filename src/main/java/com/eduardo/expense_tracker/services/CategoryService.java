@@ -8,6 +8,7 @@ import com.eduardo.expense_tracker.entities.Category;
 import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.repositories.CategoryRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -20,6 +21,7 @@ public class CategoryService {
     @Autowired
         private CategoryRepository repository;
 
+        @Transactional
         public CategoryDTOresponse insertCategory(CategoryDTOrequest categoryDTO){
             Category category = new Category();
             category.setName(categoryDTO.getName());
@@ -47,6 +49,7 @@ public class CategoryService {
                     this::convertToResponseDTO).toList();
         }
 
+        @Transactional
         public void deleteCategory(Long id) {
             repository.deleteById(id);
         }
@@ -60,6 +63,7 @@ public class CategoryService {
             }
         }
 
+        @Transactional
         public CategoryDTOresponse updateCategory(Long id, CategoryDTOrequest obj){
             Category categoryFind = repository.findById(id).orElseThrow(
                     ()  -> new ResourceNotFoundException("Category not found" + id));

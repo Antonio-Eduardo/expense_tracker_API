@@ -9,6 +9,7 @@ import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,10 +36,12 @@ public class UserService {
                 .map(this::convertToUserResponseDTO).toList();
     }
 
+    @Transactional
     public void deleteUser(Long id){
         repository.deleteById(id);
     }
 
+    @Transactional
      public UserDTOresponse updateUser(Long id, UserDTOrequest obj){
          User userFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found" + id));
          updateData(userFind,obj);
@@ -64,6 +67,7 @@ public class UserService {
             userFind.setBirthDate(obj.getBirthDate());
         }
      }
+     @Transactional
     public RegisterDTOresponse createUser(RegisterDTOrequest data) {
         User user = new User();
         user.setEmail(data.email());
