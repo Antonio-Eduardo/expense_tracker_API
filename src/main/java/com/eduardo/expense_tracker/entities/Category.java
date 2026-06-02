@@ -6,10 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.ToStringExclude;
-
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "tb_category")
@@ -28,7 +27,7 @@ public class Category {
     @JsonIgnore
     @ToStringExclude
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private Set<Expense> expenses;
+    private List<Expense> expenses;
 
     @Override
     public boolean equals(Object o) {

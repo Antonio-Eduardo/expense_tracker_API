@@ -51,36 +51,42 @@ public class CategoryService {
             repository.deleteById(id);
         }
 
-        public void updateData(Category categoryFind, Category obj){
-            categoryFind.setNotifyLimit(obj.getNotifyLimit());
-            categoryFind.setName(obj.getName());
+        public void updateData(Category categoryFind, CategoryDTOrequest obj){
+            if (obj.getNotifyLimit() != null) {
+                categoryFind.setNotifyLimit(obj.getNotifyLimit());
+            }
+            if (obj.getName() != null) {
+                categoryFind.setName(obj.getName());
+            }
         }
 
-        public Category updateCategory(Long id, Category obj){
-            Category categoryFind = repository.findById(id).orElse(null);
-            if (categoryFind != null) {
+        public CategoryDTOresponse updateCategory(Long id, CategoryDTOrequest obj){
+            Category categoryFind = repository.findById(id).orElseThrow(
+                    ()  -> new ResourceNotFoundException("Category not found" + id));
                 updateData(categoryFind, obj);
-               return repository.save(categoryFind);
-            }
-            return null;
+                categoryFind = repository.save(categoryFind);
+               return convertToResponseDTO(categoryFind);
         }
-    public CategoryDTOresponse convertToResponseDTO(Category category){
+    public CategoryDTOresponse convertToResponseDTO(Category category) {
 
         CategoryDTOresponse response = new CategoryDTOresponse();
         response.setId(category.getId());
         response.setName(category.getName());
         response.setNotifyLimit(category.getNotifyLimit());
-        Set<ExpenseDTOresponse> expenseDTOList = category.getExpenses().stream().map(
-                expense -> new ExpenseDTOresponse(
-                        expense.getId(),
-                        expense.getAmount(),
-                        expense.getDescription(),
-                        expense.getExpenseMoment(),
-                        expense.getCategory().getId(),
-                        expense.getMonthlyExpense().getId()
-                )).collect(Collectors.toSet());
+        if (category.getExpenses() != null){
+            Set<ExpenseDTOresponse> expenseDTOList = category.getExpenses().stream().map(
+                    expense -> new ExpenseDTOresponse(
+                            expense.getId(),
+                            expense.getAmount(),
+                            expense.getDescription(),
+                            expense.getExpenseMoment(),
+                            expense.getCategory().getId(),
+                            expense.getMonthlyExpense().getId()
+                    )).collect(Collectors.toSet());
         response.setExpenseDTOS(expenseDTOList);
-
+    } else {
+            response.setExpenseDTOS(null);
+        }
         return response;
     }
 }

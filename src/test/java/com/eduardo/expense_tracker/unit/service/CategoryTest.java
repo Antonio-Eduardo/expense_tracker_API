@@ -11,8 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,10 +46,10 @@ public class CategoryTest {
 
     }
     @Test
-    public void deveriaAcharCategoriaPorId(){
+    public void deveriaAcharUmaCategoriaPorId(){
         Category category = new Category();
         category.setId(1L);
-        category.setExpenses(new HashSet<>());
+        category.setExpenses(new ArrayList<>());
 
         when(repository.findById(any(Long.class))).thenReturn(Optional.of(category));
 
@@ -60,5 +59,46 @@ public class CategoryTest {
         assertEquals(1L,categoryFind.getId());
 
         verify(repository).findById(any(Long.class));
+    }
+
+    @Test
+    public void deveriaAcharTodasAsCategorias(){
+        List<Category> lista = List.of(new Category(), new Category());
+
+        when(repository.findAll()).thenReturn(lista);
+
+        List<CategoryDTOresponse> response = service.findAllCategories();
+
+        assertNotNull(response);
+        assertEquals(2,response.size());
+
+        verify(repository).findAll();
+    }
+
+    @Test
+    public void deveriaDeleterUmaCategoriaPorId(){
+        service.deleteCategory(1L);
+
+        verify(repository).deleteById(1L);
+    }
+
+    @Test
+    public void deveriaAtualizarUmaCategoriaPeloId(){
+        Category category = new Category();
+        category.setId(1L);
+        category.setName("Alimento");
+
+        CategoryDTOrequest categoryDTOrequest = new CategoryDTOrequest();
+        categoryDTOrequest.setName("Novo");
+
+        when(repository.save(any(Category.class))).thenReturn(category);
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(category));
+
+        CategoryDTOresponse categoryDTOresponse = service.updateCategory(category.getId(), categoryDTOrequest);
+
+        assertNotNull(categoryDTOresponse);
+        assertEquals("Novo", categoryDTOresponse.getName());
+
+        verify(repository).save(any(Category.class));
     }
 }

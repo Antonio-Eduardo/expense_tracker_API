@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/category")
@@ -28,7 +29,7 @@ public class CategoryController {
     }
 
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
+    public ResponseEntity<CategoryDTOresponse> updateCategory(@PathVariable Long id, @RequestBody CategoryDTOrequest category) {
         return ResponseEntity.ok().body(categoryServices.updateCategory(id, category));
     }
     @PostMapping(value = "/insert")
