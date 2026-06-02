@@ -57,8 +57,8 @@ public class ExpenseTest {
 
         ExpenseDTOrequest expenseDTOrequest = new ExpenseDTOrequest();
         expenseDTOrequest.setDescription("Uber");
-        expenseDTOrequest.setCategoryId(1L);
         expenseDTOrequest.setMonthlyExpenseId(1L);
+        expenseDTOrequest.setCategoryId(1L);
 
         when(repository.save(any(Expense.class))).thenReturn(expense);
         when(monthlyExpenseRepository.findById(any(Long.class))).thenReturn(Optional.of(monthlyExpense));
