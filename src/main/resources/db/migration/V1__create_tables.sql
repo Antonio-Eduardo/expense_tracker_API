@@ -32,7 +32,7 @@ CREATE TABLE tb_category(
 CREATE TABLE tb_monthly_expense(
     id BIGSERIAL PRIMARY KEY,
     month_total NUMERIC(19,2) NOT NULL,
-    expense_month VARCHAR(255) NOT NULL,
+    month VARCHAR(255) NOT NULL,
     limit_expense NUMERIC (19,2) NOT NULL,
     bank_account_id BIGINT NOT NULL REFERENCES tb_bank_account(id) ON DELETE CASCADE
 );
