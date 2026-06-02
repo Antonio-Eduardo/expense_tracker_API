@@ -4,6 +4,7 @@ import com.eduardo.expense_tracker.TestcontainersConfiguration;
 import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
 import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +74,7 @@ class ExpenseIntegrationTest {
 	}
 
 	@Test
-	void shouldCreateExpenseSuccessfully() throws Exception {
+	void deveriaCriarUmaExpense() throws Exception {
 		ExpenseDTOrequest request = new ExpenseDTOrequest();
 		request.setDescription("Uber");
 		request.setAmount(new BigDecimal("35.50"));
@@ -93,7 +94,7 @@ class ExpenseIntegrationTest {
 	}
 
 	@Test
-	void shouldFindExpenseById() throws Exception {
+	void DeveriaRetornarUmaExpensePeloId() throws Exception {
 		var expense = new com.eduardo.expense_tracker.entities.Expense();
 		expense.setDescription("Almoço");
 		expense.setAmount(new BigDecimal("45.00"));
@@ -108,15 +109,15 @@ class ExpenseIntegrationTest {
 	}
 
 	@Test
-	void shouldFindAllExpenses() throws Exception {
-		var expense1 = new com.eduardo.expense_tracker.entities.Expense();
+	void DeveriaRetornarTodasAsExpenses() throws Exception {
+		var expense1 = new Expense();
 		expense1.setDescription("Uber");
 		expense1.setAmount(new BigDecimal("20.00"));
 		expense1.setMonthlyExpense(monthlyExpense);
 		expense1.setCategory(category);
 		expenseRepository.save(expense1);
 
-		var expense2 = new com.eduardo.expense_tracker.entities.Expense();
+		var expense2 = new Expense();
 		expense2.setDescription("Táxi");
 		expense2.setAmount(new BigDecimal("40.00"));
 		expense2.setMonthlyExpense(monthlyExpense);
@@ -129,8 +130,8 @@ class ExpenseIntegrationTest {
 	}
 
 	@Test
-	void shouldDeleteExpense() throws Exception {
-		var expense = new com.eduardo.expense_tracker.entities.Expense();
+	void deveriaDeleterUmaExpense() throws Exception {
+		var expense = new Expense();
 		expense.setDescription("Excluir");
 		expense.setAmount(new BigDecimal("15.00"));
 		expense.setMonthlyExpense(monthlyExpense);
@@ -142,7 +143,7 @@ class ExpenseIntegrationTest {
 	}
 
 	@Test
-	void shouldReturnNotFoundWhenExpenseDoesNotExist() throws Exception {
+	void DeveriaRetornarNotFoundQuandoExpenseNaoExister() throws Exception {
 		mockMvc.perform(get("/expense/{id}", 9999L))
 				.andExpect(status().isNotFound());
 	}
