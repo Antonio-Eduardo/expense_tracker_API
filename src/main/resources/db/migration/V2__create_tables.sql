@@ -1,1 +1,1 @@
-ALTER TABLE tb_monthly_expense RENAME COLUMN expense_month TO month;
+ALTER TABLE tb_monthly_expense RENAME COLUMN month TO expense_month;
