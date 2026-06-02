@@ -36,6 +36,7 @@ public class SecurityConfiguration {
                                 "/api-docs/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers("/h2-console", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
