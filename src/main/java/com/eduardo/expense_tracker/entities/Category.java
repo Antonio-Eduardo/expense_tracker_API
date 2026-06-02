@@ -5,8 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import lombok.ToString;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -24,8 +25,9 @@ public class Category {
     private String name;
 
     @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private java.util.Set<Expense> expenses;
+    private List<Expense> expenses;
 
     @Override
     public boolean equals(Object o) {

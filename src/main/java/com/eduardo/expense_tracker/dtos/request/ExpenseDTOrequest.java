@@ -1,12 +1,16 @@
-package com.eduardo.expense_tracker.dtos;
+package com.eduardo.expense_tracker.dtos.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
-public class ExpenseDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExpenseDTOrequest {
     private BigDecimal amount;
     private String description;
     private Instant expenseMoment;

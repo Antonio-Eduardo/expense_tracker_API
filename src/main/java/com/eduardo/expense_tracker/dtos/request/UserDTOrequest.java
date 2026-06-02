@@ -1,15 +1,12 @@
-package com.eduardo.expense_tracker.dtos;
+package com.eduardo.expense_tracker.dtos.request;
 
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
-public class UserDTO {
+public class UserDTOrequest {
     public String name;
-    public String email;
-    public String password;
-    public String role;
     public String cpf;
     public String phone;
     public LocalDate birthDate;

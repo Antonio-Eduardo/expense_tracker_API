@@ -4,10 +4,7 @@ import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,6 +43,7 @@ public class User implements UserDetails {
     private Location location;
 
     @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<BankAccount> accounts;
 

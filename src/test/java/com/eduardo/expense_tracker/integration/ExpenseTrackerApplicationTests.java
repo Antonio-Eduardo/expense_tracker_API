@@ -1,128 +1,150 @@
 package com.eduardo.expense_tracker.integration;
 
 import com.eduardo.expense_tracker.TestcontainersConfiguration;
-import com.eduardo.expense_tracker.dtos.*;
-import com.eduardo.expense_tracker.entities.*;
-import com.eduardo.expense_tracker.entities.user.User;
-import com.eduardo.expense_tracker.entities.user.UserRole;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
 import com.eduardo.expense_tracker.repositories.*;
-import com.eduardo.expense_tracker.services.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
+@AutoConfigureMockMvc
+@WithMockUser
 @ActiveProfiles("test")
-class ExpenseTrackerApplicationTests {
+class ExpenseIntegrationTest {
 
 	@Autowired
-	private BankAccountRepository bankAccountRepository;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private MonthlyExpenseRepository monthlyExpenseRepository;
+	private MockMvc mockMvc;
+
 	@Autowired
 	private ExpenseRepository expenseRepository;
 	@Autowired
-	private LocationRepository locationRepository;
-	@Autowired
 	private CategoryRepository categoryRepository;
 	@Autowired
-	private UserService userService;
+	private MonthlyExpenseRepository monthlyExpenseRepository;
 	@Autowired
-	private ExpenseService expenseService;
-	@Autowired
-	private BankAccountService bankAccountService;
-	@Autowired
-	private LocationService locationService;
-	@Autowired
-	private CategoryService categoryServices;
-	@Autowired
-	private MonthlyExpenseService monthlyExpenseService;
+	private BankAccountRepository bankAccountRepository;
+
+	private Category category;
+	private MonthlyExpense monthlyExpense;
+	private BankAccount bankAccount;
 
 	@BeforeEach
-	void limpar(){
+	void setup() {
 		expenseRepository.deleteAll();
 		monthlyExpenseRepository.deleteAll();
-		locationRepository.deleteAll();
 		categoryRepository.deleteAll();
 		bankAccountRepository.deleteAll();
-		userRepository.deleteAll();
+
+		bankAccount = new BankAccount();
+		bankAccount.setTypeAccount("Conta Principal");
+		bankAccount.setBalance(new BigDecimal("5000.00"));
+		bankAccount = bankAccountRepository.save(bankAccount);
+
+		category = new Category();
+		category.setName("Transporte");
+		category = categoryRepository.save(category);
+
+		monthlyExpense = new MonthlyExpense();
+		monthlyExpense.setMonth("Junho");
+		monthlyExpense.setMonthTotal(BigDecimal.ZERO);
+		monthlyExpense.setLimitExpense(new BigDecimal("2000.00"));
+		monthlyExpense.setBankAccount(bankAccount);
+		monthlyExpense = monthlyExpenseRepository.save(monthlyExpense);
 	}
+
 	@Test
-	void deveriaDescontarDoMensalEBanco() {
-		RegisterDTO registerDTO = new RegisterDTO("eduardo@gmail.com", "password", UserRole.USER);
-		userService.createUser(registerDTO);
-		User userfound = userService.findByEmail(registerDTO.email());
+	void deveriaCriarUmaExpense() throws Exception {
+		ExpenseDTOrequest request = new ExpenseDTOrequest();
+		request.setDescription("Uber");
+		request.setAmount(new BigDecimal("35.50"));
+		request.setMonthlyExpenseId(monthlyExpense.getId());
+		request.setCategoryId(category.getId());
 
-		Category category = new Category();
-		category.setName("Alimentação");
-		category.setNotifyLimit(new BigDecimal(200));
-		categoryServices.insertCategory(category);
-
-		Location location = new Location();
-		location.setCity("São Paulo");
-		location.setState("SP");
-		location.setAddress1("Rua A, 123");
-		location.setAddress2("Apto 45");
-		location.setZipCode("12345-678");
-		locationService.insertLocation(location);
-
-		UserDTO userDTO = new UserDTO();
-		userDTO.setName("Eduardo");
-		userDTO.setCpf("12345678900");
-		userDTO.setPhone("11999999999");
-		userDTO.setBirthDate(LocalDate.parse("2003-06-18"));
-		userDTO.setLocationId(location.getId());
-		userService.updateUser(userfound.getId(), userDTO);
-		User user = userService.userFindById(1L);
-
-		BankAccountDTO bankAccount = new BankAccountDTO();
-		bankAccount.setBalance(new BigDecimal(1000));
-		bankAccount.setTypeAccount("Caixa");
-		bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T00:00:00Z"));
-		bankAccount.setUserId(user.getId());
-		bankAccountService.insertBankAccount(bankAccount);
-		BankAccount bankAccountDB = bankAccountService.findBankAccountById(1L);
-
-		MonthlyExpenseDTO monthlyExpenseDTO = new MonthlyExpenseDTO();
-		monthlyExpenseDTO.setMonthTotal(new BigDecimal(0));
-		monthlyExpenseDTO.setMonth("Maio");
-		monthlyExpenseDTO.setLimitExpense(new BigDecimal(500));
-		monthlyExpenseDTO.setBankAccountId(bankAccountDB.getId());
-		monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
-		MonthlyExpense monthlyExpense = monthlyExpenseService.findMonthlyExpenseById(1L);
-
-		ExpenseDTO expenseDTO = new ExpenseDTO();
-		expenseDTO.setAmount(new BigDecimal(100));
-		expenseDTO.setDescription("Compra no supermercado");
-		expenseDTO.setExpenseMoment(Instant.now());
-		expenseDTO.setMonthlyExpenseId(monthlyExpense.getId());
-		expenseDTO.setCategoryId(category.getId());
-		expenseService.insertExpense(expenseDTO);
-		Expense expense = expenseService.findExpenseById(1L);
-		expenseService.processExpense(expense);
-
-		ExpenseDTO expenseDTO1 = new ExpenseDTO();
-		expenseDTO1.setAmount(new BigDecimal(150));
-		expenseDTO1.setDescription("Compra no mercado");
-		expenseDTO1.setExpenseMoment(Instant.now());
-		expenseDTO1.setMonthlyExpenseId(monthlyExpense.getId());
-		expenseDTO1.setCategoryId(category.getId());
-		expenseService.insertExpense(expenseDTO1);
-		Expense expense1 = expenseService.findExpenseById(2L);
-		expenseService.processExpense(expense1);
-
-		monthlyExpenseService.processMonthlyExpense(monthlyExpense);
+		mockMvc.perform(post("/expense/insert")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+                    {"description":"Uber","amount":35.50,"monthlyExpenseId":%d,"categoryId":%d}
+                    """.formatted(monthlyExpense.getId(), category.getId())))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.description").value("Uber"))
+				.andExpect(jsonPath("$.amount").value(35.50))
+				.andExpect(jsonPath("$.monthlyExpenseId").value(monthlyExpense.getId()))
+				.andExpect(jsonPath("$.categoryId").value(category.getId()));
 	}
 
+	@Test
+	void DeveriaRetornarUmaExpensePeloId() throws Exception {
+		var expense = new com.eduardo.expense_tracker.entities.Expense();
+		expense.setDescription("Almoço");
+		expense.setAmount(new BigDecimal("45.00"));
+		expense.setMonthlyExpense(monthlyExpense);
+		expense.setCategory(category);
+		expense = expenseRepository.save(expense);
+
+		mockMvc.perform(get("/expense/{id}", expense.getId()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.description").value("Almoço"))
+				.andExpect(jsonPath("$.amount").value(45.00));
+	}
+
+	@Test
+	void DeveriaRetornarTodasAsExpenses() throws Exception {
+		var expense1 = new Expense();
+		expense1.setDescription("Uber");
+		expense1.setAmount(new BigDecimal("20.00"));
+		expense1.setMonthlyExpense(monthlyExpense);
+		expense1.setCategory(category);
+		expenseRepository.save(expense1);
+
+		var expense2 = new Expense();
+		expense2.setDescription("Táxi");
+		expense2.setAmount(new BigDecimal("40.00"));
+		expense2.setMonthlyExpense(monthlyExpense);
+		expense2.setCategory(category);
+		expenseRepository.save(expense2);
+
+		mockMvc.perform(get("/expense"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(2)));
+	}
+
+	@Test
+	void deveriaDeleterUmaExpense() throws Exception {
+		var expense = new Expense();
+		expense.setDescription("Excluir");
+		expense.setAmount(new BigDecimal("15.00"));
+		expense.setMonthlyExpense(monthlyExpense);
+		expense.setCategory(category);
+		expense = expenseRepository.save(expense);
+
+		mockMvc.perform(delete("/expense/delete/{id}", expense.getId()))
+				.andExpect(status().isNoContent());
+	}
+
+	@Test
+	void DeveriaRetornarNotFoundQuandoExpenseNaoExister() throws Exception {
+		mockMvc.perform(get("/expense/{id}", 9999L))
+				.andExpect(status().isNotFound());
+	}
 }

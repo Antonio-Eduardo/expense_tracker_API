@@ -1,15 +1,17 @@
 package com.eduardo.expense_tracker.services;
 
-import com.eduardo.expense_tracker.dtos.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 @Service
@@ -21,7 +23,8 @@ public class BankAccountService {
     @Autowired
     private UserRepository userRepository;
 
-    public BankAccount insertBankAccount(BankAccountDTO bankAccount){
+    @Transactional
+    public BankAccountDTOresponse insertBankAccount(BankAccountDTOrequest bankAccount){
         BankAccount bankAccountDB = new BankAccount();
         User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + bankAccount.getUserId()));
         bankAccountDB.setTypeAccount(bankAccount.getTypeAccount());
@@ -29,32 +32,61 @@ public class BankAccountService {
         bankAccountDB.setBalance(bankAccount.getBalance());
         bankAccountDB.setUser(user);
 
-        return repository.save(bankAccountDB);
+        bankAccountDB = repository.save(bankAccountDB);
+
+        return convertToBankAccountResponseDTO(bankAccountDB);
     }
-    public BankAccount findBankAccountById(Long id){
-        return repository.findById(id).orElse(null);
+    public BankAccountDTOresponse findBankAccountById(Long id){
+        BankAccount bk = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException
+                        ("Bank Account not found" + id));
+        return convertToBankAccountResponseDTO(bk);
     }
 
-    public List<BankAccount> findAllBankAccounts(){
-        return repository.findAll();
+    public List<BankAccountDTOresponse> findAllBankAccounts(){
+
+        return repository.findAll().stream().map(this::convertToBankAccountResponseDTO).toList();
     }
 
+    @Transactional
     public void deleteBankAccount(Long id) {
         repository.deleteById(id);
     }
 
-    public void updateData(BankAccount bankAccountFind, BankAccount obj){
-        if (bankAccountFind.getTypeAccount()  == null) {
+    public void updateData(BankAccount bankAccountFind, BankAccountDTOrequest obj){
+        if (obj != null) {
             bankAccountFind.setTypeAccount(obj.getTypeAccount());
         }
-        if (bankAccountFind.getCreditCardClosingDate() == null) {
+        if (obj != null) {
             bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
         }
     }
 
-    public BankAccount updateBankAccount(Long id, BankAccount obj){
+    @Transactional
+    public BankAccountDTOresponse updateBankAccount(Long id, BankAccountDTOrequest obj){
         BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
             updateData(bankAccountFind, obj);
-           return repository.save(bankAccountFind);
+
+            bankAccountFind = repository.save(bankAccountFind);
+           return convertToBankAccountResponseDTO(bankAccountFind);
+    }
+    public BankAccountDTOresponse convertToBankAccountResponseDTO(BankAccount bk){
+        BankAccountDTOresponse response = new BankAccountDTOresponse();
+        if (bk.getId() != null) {
+            response.setId(bk.getId());
+        }
+        if (bk.getTypeAccount() != null) {
+            response.setTypeAccount(bk.getTypeAccount());
+        }
+        if (bk.getBalance() != null) {
+            response.setBalance(bk.getBalance());
+        }
+        if (bk.getUser() != null) {
+            response.setUserId(bk.getUser().getId());
+        }
+        if (bk.getCreditCardClosingDate() != null) {
+            response.setCreditCardClosingDate(bk.getCreditCardClosingDate());
+        }
+        return response;
     }
 }

@@ -1,6 +1,7 @@
 package com.eduardo.expense_tracker.unit.service;
 
-import com.eduardo.expense_tracker.dtos.BankAccountDTO;
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
 import com.eduardo.expense_tracker.entities.BankAccount;
 import com.eduardo.expense_tracker.repositories.BankAccountRepository;
 import com.eduardo.expense_tracker.services.BankAccountService;
@@ -37,7 +38,7 @@ public class BankAccountTest {
         User user = new User();
         user.setId(1L);
 
-        BankAccountDTO bankAccountDTO = new BankAccountDTO();
+        BankAccountDTOrequest bankAccountDTO = new BankAccountDTOrequest();
         bankAccountDTO.setTypeAccount("Conta Corrente");
         bankAccountDTO.setUserId(1L);
 
@@ -48,7 +49,7 @@ public class BankAccountTest {
         when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
         when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
-        BankAccount result = bankAccountService.insertBankAccount(bankAccountDTO);
+        BankAccountDTOresponse result = bankAccountService.insertBankAccount(bankAccountDTO);
 
         assertNotNull(result);
         assertEquals("Conta Corrente", result.getTypeAccount());
@@ -61,7 +62,7 @@ public class BankAccountTest {
 
         when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
 
-        BankAccount result = bankAccountService.findBankAccountById(bankAccount.getId());
+        BankAccountDTOresponse result = bankAccountService.findBankAccountById(bankAccount.getId());
 
         assertNotNull(result);
         assertEquals(1L,result.getId());
@@ -74,7 +75,7 @@ public class BankAccountTest {
 
         when(bankAccountRepository.findAll()).thenReturn(bankAccounts);
 
-        List<BankAccount> result = bankAccountService.findAllBankAccounts();
+        List<BankAccountDTOresponse> result = bankAccountService.findAllBankAccounts();
 
         assertNotNull(result);
         assertEquals(2,result.size());
@@ -92,15 +93,14 @@ public class BankAccountTest {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setTypeAccount("antigo");
         bankAccount.setId(1L);
-        bankAccount.setCreditCardClosingDate(Instant.parse("2026-05-29T10:15:30Z"));
 
-        BankAccount bankAccountdto = new BankAccount();
-        bankAccount.setTypeAccount("novo");
+        BankAccountDTOrequest bankAccountDTOrequest = new BankAccountDTOrequest();
+        bankAccountDTOrequest.setTypeAccount("novo");
 
         when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
         when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
 
-        BankAccount result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountdto);
+        BankAccountDTOresponse result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountDTOrequest);
 
         assertNotNull(result);
         assertEquals("novo", result.getTypeAccount());

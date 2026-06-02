@@ -1,12 +1,15 @@
 # expense_tracker_API
 
-![Status do Projeto](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![Status do Projeto](https://img.shields.io/badge/status-production-brightgreen)
 ![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.6-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+[![Deploy](https://img.shields.io/badge/Railway-online-blueviolet)](https://expensetrackerapi-production-663e.up.railway.app)
 [![Licença MIT](https://img.shields.io/badge/licenca-MIT-green)](LICENSE)
 
-> API REST de controle de gastos pessoais com contas bancárias, categorias de gastos e histórico mensal. Autenticação via JWT, persistência em PostgreSQL via Docker, testes de integração com Testcontainers e testes unitários com Mockito.
+> API REST de controle de gastos pessoais com contas bancárias, categorias de gastos e histórico mensal. Autenticação via JWT, persistência em PostgreSQL, testes de integração com Testcontainers e testes unitários com Mockito. Deploy ativo no Railway.
+
+**[→ API em produção](https://expensetrackerapi-production-663e.up.railway.app)**
 
 ---
 
@@ -58,7 +61,7 @@ As principais funcionalidades implementadas incluem:
 | Spring Security | — | Autenticação e autorização stateless |
 | Auth0 Java JWT | — | Geração e validação de tokens JWT |
 | PostgreSQL | 16 | Banco de dados |
-| Docker | — | Container do banco de dados |
+| Docker | — | Container do banco de dados (dev) |
 | Testcontainers | — | PostgreSQL real nos testes de integração |
 | JUnit 5 | — | Testes unitários e de integração |
 | Mockito | — | Mocks nos testes unitários |
@@ -83,13 +86,6 @@ src/
 │       │   ├── ExpenseController.java
 │       │   └── LocationController.java
 │       ├── dtos/
-│       │   ├── AuthenticationDTO.java
-│       │   ├── LoginResponseDTO.java
-│       │   ├── RegisterDTO.java
-│       │   ├── BankAccountDTO.java
-│       │   ├── ExpenseDTO.java
-│       │   ├── MonthlyExpenseDTO.java
-│       │   └── UserDTO.java
 │       ├── entities/
 │       │   ├── user/
 │       │   │   ├── User.java                   # Implementa UserDetails
@@ -102,25 +98,13 @@ src/
 │       ├── infra/
 │       │   ├── exception/
 │       │   │   ├── GlobalExceptionHandler.java # Tratamento global (@RestControllerAdvice)
-│       │   │   └── StandartError.java          # Payload padronizado de erro
-│       │   ├── AuthorizationService.java       # Implementa UserDetailsService
-│       │   ├── SecurityConfiguration.java      # Filtros, CSRF, rotas públicas/protegidas
+│       │   │   └── StandartError.java
+│       │   ├── AuthorizationService.java
+│       │   ├── SecurityConfiguration.java
 │       │   ├── SecurityFilter.java             # Intercepta requisições e valida JWT
-│       │   └── TokenService.java               # Geração e validação de tokens JWT
+│       │   └── TokenService.java
 │       ├── repositories/
-│       │   ├── UserRepository.java
-│       │   ├── LocationRepository.java
-│       │   ├── BankAccountRepository.java
-│       │   ├── CategoryRepository.java
-│       │   ├── MonthlyExpenseRepository.java
-│       │   └── ExpenseRepository.java
 │       ├── services/
-│       │   ├── UserService.java
-│       │   ├── LocationService.java
-│       │   ├── BankAccountService.java
-│       │   ├── CategoryService.java
-│       │   ├── MonthlyExpenseService.java
-│       │   ├── ExpenseService.java
 │       │   └── exceptions/
 │       │       ├── ResourceNotFoundException.java
 │       │       ├── DuplicateResourceException.java
@@ -128,8 +112,6 @@ src/
 │       └── ExpenseTrackerApplication.java
 └── test/
     └── java/com/eduardo/expense_tracker/
-        ├── TestcontainersConfiguration.java
-        ├── TestExpenseTrackerApplication.java
         ├── integration/
         │   └── ExpenseTrackerApplicationTests.java
         └── unit/
@@ -147,11 +129,7 @@ Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──�
                                                                                            (N) Category
 ```
 
-**Entidades:**
-
-- **User** — nome, email, senha (BCrypt), CPF, telefone, data de nascimento, role e localização. Implementa `UserDetails` do Spring Security
-- **UserRole** — enum com os valores `ADMIN` (acesso a `ROLE_ADMIN` + `ROLE_USER`) e `USER` (acesso a `ROLE_USER`)
-- **Location** — cidade, estado, endereço, CEP
+- **User** — nome, email, senha (BCrypt), CPF, telefone, data de nascimento, role e localização. Implementa `UserDetails`
 - **BankAccount** — tipo de conta, saldo, data de fechamento do cartão
 - **Category** — nome e limite de notificação de gastos
 - **MonthlyExpense** — mês de referência, total gasto, limite mensal e conta bancária vinculada
@@ -159,14 +137,14 @@ Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──�
 
 **Fluxo de processamento:**
 
-1. `ExpenseService.processExpense()` — adiciona o valor da despesa ao total do mês e desconta do limite mensal. Lança `BusinessException` se o valor exceder o limite da categoria
-2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta bancária. Lança `BusinessException` se o saldo for insuficiente
+1. `ExpenseService.processExpense()` — adiciona o valor ao total do mês e desconta do limite da categoria. Lança `BusinessException` se exceder o limite
+2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta. Lança `BusinessException` se saldo insuficiente
 
 ---
 
 ## Autenticação
 
-A API utiliza autenticação **stateless com JWT**. As únicas rotas públicas são `/auth/register` e `/auth/login`; todas as demais exigem token válido no header.
+A API utiliza autenticação **stateless com JWT**. Rotas públicas: `/auth/register` e `/auth/login`.
 
 ### Registro
 
@@ -180,8 +158,6 @@ Content-Type: application/json
   "role": "USER"
 }
 ```
-
-Retorna `200 OK` em caso de sucesso ou `409 Conflict` se o e-mail já estiver cadastrado.
 
 ### Login
 
@@ -205,34 +181,25 @@ Resposta:
 
 ### Usando o token
 
-Inclua o token em todas as requisições protegidas:
-
 ```http
 Authorization: Bearer <token>
 ```
 
-O token tem validade de **24 horas**. A senha é armazenada com hash BCrypt.
-
-### Configuração do segredo JWT
-
-Defina a variável no `application.properties`:
-
-```properties
-api.security.token.secret=seu-segredo-aqui
-```
+Token válido por **24 horas**. Senha armazenada com BCrypt.
 
 ---
 
 ## Endpoints Disponíveis
 
-> Todos os endpoints abaixo exigem autenticação via Bearer Token, exceto `/auth/*`.
+> Todos os endpoints exigem autenticação via Bearer Token, exceto `/auth/*`.
+> Base URL em produção: `https://expensetrackerapi-production-663e.up.railway.app`
 
 ### Autenticação — `/auth`
 
-| Método | Rota | Descrição | Autenticação |
+| Método | Rota | Descrição | Auth |
 |---|---|---|---|
 | POST | `/auth/register` | Registra novo usuário | Pública |
-| POST | `/auth/login` | Realiza login e retorna token JWT | Pública |
+| POST | `/auth/login` | Login e retorna token JWT | Pública |
 
 ### Usuários — `/users`
 
@@ -240,7 +207,7 @@ api.security.token.secret=seu-segredo-aqui
 |---|---|---|
 | GET | `/users` | Lista todos os usuários |
 | GET | `/users/{id}` | Busca usuário por ID |
-| PUT | `/users/update/{id}` | Atualiza nome, telefone, CPF, data de nascimento e localização |
+| PUT | `/users/update/{id}` | Atualiza dados do usuário |
 | DELETE | `/users/delete/{id}` | Remove usuário |
 
 ### Contas Bancárias — `/bank-account`
@@ -249,8 +216,8 @@ api.security.token.secret=seu-segredo-aqui
 |---|---|---|
 | GET | `/bank-account` | Lista todas as contas |
 | GET | `/bank-account/{id}` | Busca conta por ID |
-| POST | `/bank-account/insert` | Cadastra nova conta (via `BankAccountDTO`) |
-| PUT | `/bank-account/update/{id}` | Atualiza tipo de conta e data de fechamento |
+| POST | `/bank-account/insert` | Cadastra nova conta |
+| PUT | `/bank-account/update/{id}` | Atualiza conta |
 | DELETE | `/bank-account/delete/{id}` | Remove conta |
 
 ### Categorias — `/category`
@@ -258,9 +225,8 @@ api.security.token.secret=seu-segredo-aqui
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/category` | Lista todas as categorias |
-| GET | `/category/{id}` | Busca categoria por ID |
 | POST | `/category/insert` | Cadastra nova categoria |
-| PUT | `/category/update/{id}` | Atualiza nome e limite de notificação |
+| PUT | `/category/update/{id}` | Atualiza categoria |
 | DELETE | `/category/delete/{id}` | Remove categoria |
 
 ### Despesas Mensais — `/month`
@@ -268,8 +234,7 @@ api.security.token.secret=seu-segredo-aqui
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/month` | Lista todos os meses |
-| GET | `/month/{id}` | Busca mês por ID |
-| POST | `/month/insert` | Cadastra novo mês (via `MonthlyExpenseDTO`) |
+| POST | `/month/insert` | Cadastra novo mês |
 | PUT | `/month/update/{id}` | Atualiza limite de gasto |
 | DELETE | `/month/delete/{id}` | Remove mês |
 
@@ -278,8 +243,7 @@ api.security.token.secret=seu-segredo-aqui
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/expense` | Lista todas as despesas |
-| GET | `/expense/{id}` | Busca despesa por ID |
-| POST | `/expense/insert` | Cadastra nova despesa (via `ExpenseDTO`) |
+| POST | `/expense/insert` | Cadastra nova despesa |
 | DELETE | `/expense/delete/{id}` | Remove despesa |
 
 ### Localizações — `/location`
@@ -287,25 +251,22 @@ api.security.token.secret=seu-segredo-aqui
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/location` | Lista todas as localizações |
-| GET | `/location/{id}` | Busca localização por ID |
 | POST | `/location/insert` | Cadastra nova localização |
-| PUT | `/location/update/{id}` | Atualiza dados da localização |
+| PUT | `/location/update/{id}` | Atualiza localização |
 | DELETE | `/location/delete/{id}` | Remove localização |
 
 ---
 
 ## Tratamento de Exceções
 
-O projeto utiliza um `GlobalExceptionHandler` centralizado com exceções customizadas por tipo:
-
 | Exceção | HTTP | Quando ocorre |
 |---|---|---|
-| `ResourceNotFoundException` | 404 Not Found | Recurso não encontrado por ID ou e-mail |
-| `DuplicateResourceException` | 409 Conflict | E-mail já cadastrado no registro |
-| `BusinessException` | 400 Bad Request | Regras de negócio violadas (saldo insuficiente, limite excedido) |
-| `Exception` | 500 Internal Server Error | Erros inesperados |
+| `ResourceNotFoundException` | 404 | Recurso não encontrado |
+| `DuplicateResourceException` | 409 | E-mail já cadastrado |
+| `BusinessException` | 400 | Regras de negócio violadas |
+| `Exception` | 500 | Erros inesperados |
 
-Todas as respostas de erro seguem o mesmo formato:
+Formato padrão de erro:
 
 ```json
 {
@@ -328,14 +289,10 @@ Todas as respostas de erro seguem o mesmo formato:
 
 ### Passos
 
-**1. Clone o repositório:**
-
 ```bash
 git clone https://github.com/Antonio-Eduardo/expense_tracker_API.git
 cd expense_tracker_API
 ```
-
-**2. Suba o banco de dados com Docker:**
 
 ```bash
 docker run --name expense-postgres \
@@ -345,48 +302,37 @@ docker run --name expense-postgres \
   -d postgres:16-alpine
 ```
 
-**3. Configure o `application.properties`:**
+Configure o `application-dev.properties`:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/expense_tracker
 spring.datasource.username=postgres
 spring.datasource.password=minhasenha
-
 api.security.token.secret=seu-segredo-jwt-aqui
 ```
 
-**4. Execute a aplicação:**
-
 ```bash
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 ---
 
 ## Testes
 
-O projeto possui dois níveis de testes:
+```bash
+mvn test
+```
 
 ### Testes de Integração (Testcontainers)
 
-O Spring sobe completo contra um PostgreSQL real em container, sem banco em memória. O teste principal (`deveriaDescontarDoMensalEBanco`) valida o fluxo completo:
-
+Valida o fluxo completo contra PostgreSQL real em container:
 - Criação de localização, usuário, conta bancária, categoria e despesas
-- Processamento das despesas no mês (atualização de total e limite)
+- Processamento de despesas com atualização de total e limite
 - Desconto do total mensal no saldo da conta bancária
 
 ### Testes Unitários (Mockito)
 
-Testes isolados dos serviços com repositórios mockados. Cobrem os principais fluxos do `UserService`:
-
-- Criação de usuário com e-mail e senha
-- Atualização de usuário
-- Busca por e-mail
-- Deleção de usuário
-
-```bash
-mvn test
-```
+Cobrem os principais fluxos do `UserService` com repositórios mockados.
 
 ---
 
@@ -394,5 +340,5 @@ mvn test
 
 - [ ] Notificação ao atingir limite de categoria
 - [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
-- [ ] Testes unitários para os demais serviços (BankAccountService, ExpenseService, MonthlyExpenseService)
+- [ ] Testes unitários para os demais serviços
 - [ ] Documentação da API com Swagger/OpenAPI

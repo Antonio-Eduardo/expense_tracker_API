@@ -1,12 +1,18 @@
 package com.eduardo.expense_tracker.controllers;
 
-import com.eduardo.expense_tracker.dtos.AuthenticationDTO;
-import com.eduardo.expense_tracker.dtos.LoginResponseDTO;
-import com.eduardo.expense_tracker.dtos.RegisterDTO;
+import com.eduardo.expense_tracker.dtos.request.AuthenticationDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.LoginResponseDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LoginResponseDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.RegisterDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
 import com.eduardo.expense_tracker.entities.user.User;
 import com.eduardo.expense_tracker.infra.security.TokenService;
 import com.eduardo.expense_tracker.repositories.UserRepository;
 import com.eduardo.expense_tracker.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Authentication", description = "Operações relacionadas à autenticação de usuários")
 public class AuthenticationController {
 
     @Autowired
@@ -30,25 +37,29 @@ public class AuthenticationController {
     private TokenService tokenService;
     @Autowired
     private UserService userService;
+
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
+    @Operation(summary = "Autentica um usuário e retorna um token JWT")
+    @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida, token JWT retornado")
+    @ApiResponse(responseCode = "400", description = "Dados de autenticação inválidos")
+    public ResponseEntity<LoginResponseDTOresponse> login(@RequestBody @Valid AuthenticationDTOrequest data){
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
         var token = tokenService.generateToken((User) auth.getPrincipal());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTOresponse(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO data){
-        if (this.userRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().body("Email already in use");
-
+    @Operation(summary = "Registra um novo usuário com email, senha e função")
+    @ApiResponse(responseCode = "200", description = "Usuário registrado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados de registro inválidos")
+    public ResponseEntity<RegisterDTOresponse> register(@RequestBody @Valid RegisterDTOrequest data){
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-        RegisterDTO registerDTO = new RegisterDTO(data.email(), encryptedPassword, data.role());
+        RegisterDTOrequest registerDTO = new RegisterDTOrequest(data.email(), encryptedPassword, data.role());
 
-        userService.createUser(registerDTO);
-        return ResponseEntity.ok().body(registerDTO);
+        return ResponseEntity.ok().body(userService.createUser(registerDTO));
     }
 }

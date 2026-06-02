@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Objects;
 
@@ -27,6 +28,7 @@ public class Location {
     private String zipCode;
 
     @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private java.util.Set<User> users;
 
