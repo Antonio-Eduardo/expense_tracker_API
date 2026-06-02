@@ -3,7 +3,7 @@ package com.eduardo.expense_tracker.dtos.response;
 import lombok.Data;
 
 @Data
-public class LocationDTO {
+public class LocationDTOresponse {
     private Long id;
     private String city;
     private String state;

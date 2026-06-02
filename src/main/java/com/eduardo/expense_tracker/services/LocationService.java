@@ -1,10 +1,12 @@
 package com.eduardo.expense_tracker.services;
 
 import com.eduardo.expense_tracker.dtos.request.LocationDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LocationDTOresponse;
 import com.eduardo.expense_tracker.entities.Location;
 import com.eduardo.expense_tracker.repositories.LocationRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -15,7 +17,7 @@ public class LocationService {
     private LocationRepository repository;
 
     @Transactional
-     public LocationDTOrequest insertLocation(LocationDTOrequest locationDTO){
+     public LocationDTOresponse insertLocation(LocationDTOrequest locationDTO){
         Location location = new Location();
         location.setCity(locationDTO.getCity());
         location.setState(locationDTO.getState());
@@ -25,7 +27,7 @@ public class LocationService {
 
         Location savedLocation = repository.save(location);
 
-        LocationDTOrequest response = new LocationDTOrequest();
+        LocationDTOresponse response = new LocationDTOresponse();
         response.setCity(savedLocation.getCity());
         response.setZipCode(savedLocation.getZipCode());
         response.setState(savedLocation.getState());
@@ -34,30 +36,51 @@ public class LocationService {
 
          return response;
      }
-    public Location findLocationById(Long id){
-         return repository.findById(id).orElse(null);
+    public LocationDTOresponse findLocationById(Long id){
+        Location location = repository.findById(id).orElseThrow(() -> new RuntimeException("Location not found with id: " + id));
+        return convertToDTOresponse(location);
     }
-     public List<Location> findAllLocations(){
-         return repository.findAll();
+     public List<LocationDTOresponse> findAllLocations(){
+         return repository.findAll().stream().map(this::convertToDTOresponse).toList();
      }
      @Transactional
      public void deleteLocation(Long id) {
          repository.deleteById(id);
      }
      public void updateData(Location locationFind, LocationDTOrequest obj){
-        locationFind.setCity(obj.getCity());
-        locationFind.setState(obj.getState());
-        locationFind.setAddress1(obj.getAddress1());
-        locationFind.setAddress2(obj.getAddress2());
-        locationFind.setZipCode(obj.getZipCode());
+        if (obj.getCity() != null) {
+            locationFind.setCity(obj.getCity());
+        }
+        if (obj.getState() != null) {
+            locationFind.setState(obj.getState());
+        }
+        if (obj.getAddress1() != null) {
+            locationFind.setAddress1(obj.getAddress1());
+        }
+        if (obj.getAddress2() != null) {
+            locationFind.setAddress2(obj.getAddress2());
+        }
+        if (obj.getZipCode() != null) {
+            locationFind.setZipCode(obj.getZipCode());
+        }
      }
      @Transactional
-     public Location locationUpdate(Long id, LocationDTOrequest obj) {
-         Location locationFind = repository.findById(id).orElse(null);
-         if (locationFind != null) {
+     public LocationDTOresponse locationUpdate(Long id, LocationDTOrequest obj) {
+         Location locationFind = repository.findById(id).orElseThrow(() -> new RuntimeException("Location not found with id: " + id));
              updateData(locationFind, obj);
-              return repository.save(locationFind);
-         }
-         return null;
+             locationFind = repository.save(locationFind);
+              return convertToDTOresponse(locationFind);
+     }
+
+     public LocationDTOresponse convertToDTOresponse(Location location){
+         LocationDTOresponse locationDTOresponse = new LocationDTOresponse();
+         locationDTOresponse.setId(location.getId());
+         locationDTOresponse.setCity(location.getCity());
+         locationDTOresponse.setState(location.getState());
+         locationDTOresponse.setAddress1(location.getAddress1());
+         locationDTOresponse.setAddress2(location.getAddress2());
+         locationDTOresponse.setZipCode(location.getZipCode());
+
+         return locationDTOresponse;
      }
 }
