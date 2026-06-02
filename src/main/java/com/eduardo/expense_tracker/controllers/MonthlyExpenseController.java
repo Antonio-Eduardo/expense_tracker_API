@@ -35,7 +35,7 @@ public class MonthlyExpenseController {
         return ResponseEntity.created(uri).body(monthlyExpense);
     }
     @PutMapping(value = "/update/{id}")
-    public ResponseEntity<MonthlyExpenseDTOresponse> updateMonthlyExpense(@PathVariable Long id, @RequestBody MonthlyExpense monthlyExpense) {
+    public ResponseEntity<MonthlyExpenseDTOresponse> updateMonthlyExpense(@PathVariable Long id, @RequestBody MonthlyExpenseDTOrequest monthlyExpense) {
         return ResponseEntity.ok().body(monthlyExpenseService.updateMonthlyExpense(id, monthlyExpense));
     }
     @DeleteMapping(value = "/delete/{id}")

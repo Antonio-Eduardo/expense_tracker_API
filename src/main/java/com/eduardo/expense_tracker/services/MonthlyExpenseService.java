@@ -26,8 +26,10 @@ public class MonthlyExpenseService {
     @Transactional
     public MonthlyExpenseDTOresponse insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){
         MonthlyExpense monthlyExpenseDB = new MonthlyExpense();
+
         BankAccount bankAccount = bankAccountRepository.findById(monthlyExpenseDTO.getBankAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpenseDTO.getBankAccountId()));
+
         monthlyExpenseDB.setLimitExpense(monthlyExpenseDTO.getLimitExpense());
         monthlyExpenseDB.setBankAccount(bankAccount);
         monthlyExpenseDB.setMonthTotal(monthlyExpenseDTO.getMonthTotal());
@@ -51,13 +53,13 @@ public class MonthlyExpenseService {
     }
 
     @Transactional
-    public MonthlyExpenseDTOresponse updateMonthlyExpense(Long id, MonthlyExpense obj){
+    public MonthlyExpenseDTOresponse updateMonthlyExpense(Long id, MonthlyExpenseDTOrequest obj){
             MonthlyExpense monthlyExpenseFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + id));
                 updateData(monthlyExpenseFind, obj);
                 monthlyExpenseFind = repository.save(monthlyExpenseFind);
                 return convertDTOresponse(monthlyExpenseFind);
         }
-    public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpense obj) {
+    public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpenseDTOrequest obj) {
             monthlyExpenseFind.setLimitExpense(obj.getLimitExpense());
         }
     @Transactional
