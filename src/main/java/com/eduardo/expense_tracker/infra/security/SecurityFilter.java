@@ -24,38 +24,16 @@ public class SecurityFilter extends OncePerRequestFilter {
     UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("Filtro passando na URL: " + request.getRequestURI());
-        String path = request.getRequestURI();
-        if (path.startsWith("/auth") ||
-                path.startsWith("/swagger-ui") ||
-                path.startsWith("/v3/api-docs")) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
         var token = this.recoveryToken(request);
         if (token != null) {
             var email = tokenService.validateToken(token);
+            Optional<User> user = userRepository.findByEmail(email);
 
-            Optional<User> userOptional = userRepository.findByEmail(email);
-
-            if (userOptional.isEmpty()) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-            User user = userOptional.get();
-
-            var authentication = new UsernamePasswordAuthenticationToken(
-                    user,
-                    null,
-                    user.getAuthorities()
-            );
+            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.get().getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+            }
         filterChain.doFilter(request, response);
     }
 
