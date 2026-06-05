@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/auth")
@@ -53,13 +56,14 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @Operation(summary = "Registra um novo usuário com email, senha e função")
-    @ApiResponse(responseCode = "200", description = "Usuário registrado com sucesso")
+    @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados de registro inválidos")
     public ResponseEntity<RegisterDTOresponse> register(@RequestBody @Valid RegisterDTOrequest data){
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
         RegisterDTOrequest registerDTO = new RegisterDTOrequest(data.email(), encryptedPassword, data.role());
-
-        return ResponseEntity.ok().body(userService.createUser(registerDTO));
+        RegisterDTOresponse registerDTOresponse = userService.createUser(registerDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(registerDTOresponse.getId()).toUri();
+        return ResponseEntity.created(uri).body(userService.createUser(registerDTO));
     }
 }
