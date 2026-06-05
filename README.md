@@ -1,344 +1,3012 @@
-# expense_tracker_API
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/AuthenticationController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-![Status do Projeto](https://img.shields.io/badge/status-production-brightgreen)
-![Java](https://img.shields.io/badge/Java-25-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.6-brightgreen)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
-[![Deploy](https://img.shields.io/badge/Railway-online-blueviolet)](https://expensetrackerapi-production-663e.up.railway.app)
-[![Licença MIT](https://img.shields.io/badge/licenca-MIT-green)](LICENSE)
+import com.eduardo.expense_tracker.dtos.request.AuthenticationDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.LoginResponseDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LoginResponseDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.RegisterDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.infra.security.TokenService;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-> API REST de controle de gastos pessoais com contas bancárias, categorias de gastos e histórico mensal. Autenticação via JWT, persistência em PostgreSQL, testes de integração com Testcontainers e testes unitários com Mockito. Deploy ativo no Railway.
+import java.net.URI;
 
-**[→ API em produção](https://expensetrackerapi-production-663e.up.railway.app)**
+@RestController
+@RequestMapping("/auth")
+@Tag(name = "Authentication", description = "Operações relacionadas à autenticação de usuários")
+public class AuthenticationController {
 
----
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private TokenService tokenService;
+    @Autowired
+    private UserService userService;
 
-## Índice
+    @PostMapping("/login")
+    @Operation(summary = "Autentica um usuário e retorna um token JWT")
+    @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida, token JWT retornado")
+    @ApiResponse(responseCode = "400", description = "Dados de autenticação inválidos")
+    public ResponseEntity<LoginResponseDTOresponse> login(@RequestBody @Valid AuthenticationDTOrequest data){
+        var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
+        var auth = this.authenticationManager.authenticate(usernamePassword);
 
-- [Sobre o Projeto](#sobre-o-projeto)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Estrutura do Projeto](#estrutura-do-projeto)
-- [Modelo de Dados](#modelo-de-dados)
-- [Autenticação](#autenticação)
-- [Endpoints Disponíveis](#endpoints-disponíveis)
-- [Tratamento de Exceções](#tratamento-de-exceções)
-- [Como Executar](#como-executar)
-- [Testes](#testes)
-- [Melhorias Futuras](#melhorias-futuras)
+        var token = tokenService.generateToken((User) auth.getPrincipal());
 
----
+        return ResponseEntity.ok(new LoginResponseDTOresponse(token));
+    }
 
-## Sobre o Projeto
+    @PostMapping("/register")
+    @Operation(summary = "Registra um novo usuário com email, senha e função")
+    @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados de registro inválidos")
+    public ResponseEntity<RegisterDTOresponse> register(@RequestBody @Valid RegisterDTOrequest data){
+        String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-O **expense_tracker_API** é uma API REST desenvolvida em Java com Spring Boot para controle de gastos pessoais. O sistema permite que usuários gerenciem suas contas bancárias, registrem despesas mensais categorizadas e acompanhem limites de gasto por categoria.
-
-As principais funcionalidades implementadas incluem:
-
-- Autenticação stateless com JWT (registro, login e proteção de rotas)
-- Controle de roles de acesso (`ADMIN` e `USER`)
-- Tratamento global de exceções com respostas padronizadas (`@RestControllerAdvice`)
-- Exceções customizadas por tipo: recurso não encontrado, duplicidade e regra de negócio
-- Cadastro e gerenciamento de usuários com localização
-- Contas bancárias associadas a cada usuário
-- Registro de despesas agrupadas por mês (`MonthlyExpense`)
-- Categorização de gastos com limite de notificação por categoria
-- Controllers REST completos para todos os recursos
-- DTOs para desacoplamento entre camada de transporte e entidades
-- Processamento de despesas: atualiza automaticamente o total mensal e o saldo da conta bancária
-- Validação de saldo insuficiente ao fechar o mês
-- Testes de integração com banco PostgreSQL real (Testcontainers)
-- Testes unitários de serviços com Mockito
-
----
-
-## Tecnologias Utilizadas
-
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 25 | Linguagem principal |
-| Spring Boot | 4.0.6 | Framework principal |
-| Spring Data JPA | — | Repositórios e persistência |
-| Spring Security | — | Autenticação e autorização stateless |
-| Auth0 Java JWT | — | Geração e validação de tokens JWT |
-| PostgreSQL | 16 | Banco de dados |
-| Docker | — | Container do banco de dados (dev) |
-| Testcontainers | — | PostgreSQL real nos testes de integração |
-| JUnit 5 | — | Testes unitários e de integração |
-| Mockito | — | Mocks nos testes unitários |
-| Flyway | — | Versionamento do schema do banco |
-| Lombok | — | Redução de boilerplate |
-| Maven | — | Gerenciamento de dependências |
-
----
-
-## Estrutura do Projeto
-
-```
-src/
-├── main/
-│   └── java/com/eduardo/expense_tracker/
-│       ├── controllers/
-│       │   ├── AuthenticationController.java   # Endpoints /auth/register e /auth/login
-│       │   ├── UserController.java
-│       │   ├── BankAccountController.java
-│       │   ├── CategoryController.java
-│       │   ├── MonthlyExpenseController.java
-│       │   ├── ExpenseController.java
-│       │   └── LocationController.java
-│       ├── dtos/
-│       ├── entities/
-│       │   ├── user/
-│       │   │   ├── User.java                   # Implementa UserDetails
-│       │   │   └── UserRole.java               # Enum: ADMIN, USER
-│       │   ├── Location.java
-│       │   ├── BankAccount.java
-│       │   ├── Category.java
-│       │   ├── MonthlyExpense.java
-│       │   └── Expense.java
-│       ├── infra/
-│       │   ├── exception/
-│       │   │   ├── GlobalExceptionHandler.java # Tratamento global (@RestControllerAdvice)
-│       │   │   └── StandartError.java
-│       │   ├── AuthorizationService.java
-│       │   ├── SecurityConfiguration.java
-│       │   ├── SecurityFilter.java             # Intercepta requisições e valida JWT
-│       │   └── TokenService.java
-│       ├── repositories/
-│       ├── services/
-│       │   └── exceptions/
-│       │       ├── ResourceNotFoundException.java
-│       │       ├── DuplicateResourceException.java
-│       │       └── BusinessException.java
-│       └── ExpenseTrackerApplication.java
-└── test/
-    └── java/com/eduardo/expense_tracker/
-        ├── integration/
-        │   └── ExpenseTrackerApplicationTests.java
-        └── unit/
-            └── service/
-                └── UserServiceTest.java
-```
-
----
-
-## Modelo de Dados
-
-```
-Location (1) ──── (N) User (1) ──── (N) BankAccount (1) ──── (N) MonthlyExpense (1) ──── (N) Expense
-                                                                                                  │
-                                                                                           (N) Category
-```
-
-- **User** — nome, email, senha (BCrypt), CPF, telefone, data de nascimento, role e localização. Implementa `UserDetails`
-- **BankAccount** — tipo de conta, saldo, data de fechamento do cartão
-- **Category** — nome e limite de notificação de gastos
-- **MonthlyExpense** — mês de referência, total gasto, limite mensal e conta bancária vinculada
-- **Expense** — valor, descrição, momento do gasto, categoria e mês de referência
-
-**Fluxo de processamento:**
-
-1. `ExpenseService.processExpense()` — adiciona o valor ao total do mês e desconta do limite da categoria. Lança `BusinessException` se exceder o limite
-2. `MonthlyExpenseService.processMonthlyExpense()` — desconta o total mensal do saldo da conta. Lança `BusinessException` se saldo insuficiente
-
----
-
-## Autenticação
-
-A API utiliza autenticação **stateless com JWT**. Rotas públicas: `/auth/register` e `/auth/login`.
-
-### Registro
-
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "usuario@email.com",
-  "password": "suasenha",
-  "role": "USER"
+        RegisterDTOrequest registerDTO = new RegisterDTOrequest(data.email(), encryptedPassword, data.role());
+        RegisterDTOresponse registerDTOresponse = userService.createUser(registerDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(registerDTOresponse.getId()).toUri();
+        return ResponseEntity.created(uri).body(userService.createUser(registerDTO));
+    }
 }
-```
 
-### Login
 
-```http
-POST /auth/login
-Content-Type: application/json
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/BankAccountController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-{
-  "email": "usuario@email.com",
-  "password": "suasenha"
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.services.BankAccountService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jmx.export.annotation.ManagedOperationParameter;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
+
+@RestController
+@RequestMapping("/bank-account")
+@Tag(name = "Bank Accounts", description = "Operações relacionadas às Contas Bancárias")
+public class BankAccountController {
+
+    @Autowired
+    private BankAccountService service;
+
+    @GetMapping
+    @Operation(summary = "Lista todas as contas bancárias")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<BankAccountDTOresponse>> findAll(){
+        return ResponseEntity.ok().body(service.findAllBankAccounts());
+    }
+
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar conta bancária por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Conta bancária não encontrada")
+    public ResponseEntity<BankAccountDTOresponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(service.findBankAccountById(id));
+    }
+    @PostMapping(value = "/insert")
+    @Operation(summary = "Insere uma nova conta bancária")
+    @ApiResponse(responseCode = "201", description = "Conta bancária criada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados da conta bancária inválidos")
+    public ResponseEntity<BankAccountDTOresponse> insertBankAccount(@RequestBody BankAccountDTOrequest bankAccount) {
+        BankAccountDTOresponse savedBankAccount = service.insertBankAccount(bankAccount);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedBankAccount.getId()).toUri();
+        return ResponseEntity.created(uri).body(savedBankAccount);
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Exclui uma conta bancária")
+    @ApiResponse(responseCode = "204", description = "Conta bancária excluída com sucesso")
+    @ApiResponse(responseCode = "404", description = "Conta bancária não encontrada")
+    public ResponseEntity<Void> deleteBankAccount(@PathVariable Long id) {
+        service.deleteBankAccount(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PutMapping(value = "/update/{id}")
+    @Operation(summary = "Atualiza uma conta bancária")
+    @ApiResponse(responseCode = "200", description = "Conta bancária atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Conta bancária não encontrada")
+    public ResponseEntity<BankAccountDTOresponse> updateBankAccount(@PathVariable Long id, @RequestBody BankAccountDTOrequest bankAccount) {
+        service.updateBankAccount(id, bankAccount);
+        return ResponseEntity.ok().body(service.findBankAccountById(id));
+    }
 }
-```
 
-Resposta:
 
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/CategoryController.java ===
+package com.eduardo.expense_tracker.controllers;
+
+import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.CategoryDTOresponse;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.services.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/category")
+@Tag(name = "Categories", description = "Operações relacionadas às Categorias")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryServices;
+
+    @GetMapping
+    @Operation(summary = "Lista todas as categorias")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<CategoryDTOresponse>> findAll(){
+        return ResponseEntity.ok().body(categoryServices.findAllCategories());
+    }
+
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar categoria por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    public ResponseEntity<CategoryDTOresponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(categoryServices.findCategoryById(id));
+    }
+
+    @PutMapping(value = "/update/{id}")
+    @Operation(summary = "Atualiza uma categoria")
+    @ApiResponse(responseCode = "200", description = "Categoria atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    public ResponseEntity<CategoryDTOresponse> updateCategory(@PathVariable Long id, @RequestBody CategoryDTOrequest category) {
+        return ResponseEntity.ok().body(categoryServices.updateCategory(id, category));
+    }
+    @PostMapping(value = "/insert")
+    @Operation(summary = "Insere uma nova categoria")
+    @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados da categoria inválidos")
+    public ResponseEntity<CategoryDTOresponse> insertCategory(@RequestBody CategoryDTOrequest category) {
+        return ResponseEntity.ok().body(categoryServices.insertCategory(category));
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Exclui uma categoria")
+    @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso")
+    @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryServices.deleteCategory(id);
+        return ResponseEntity.noContent().build();
+    }
 }
-```
 
-### Usando o token
 
-```http
-Authorization: Bearer <token>
-```
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/ExpenseController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-Token válido por **24 horas**. Senha armazenada com BCrypt.
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.services.ExpenseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
----
+import java.net.URI;
+import java.util.List;
 
-## Endpoints Disponíveis
+@RestController
+@RequestMapping("/expense")
+@Tag(name = "Expenses", description = "Operações relacionadas às Despesas")
+public class ExpenseController {
 
-> Todos os endpoints exigem autenticação via Bearer Token, exceto `/auth/*`.
-> Base URL em produção: `https://expensetrackerapi-production-663e.up.railway.app`
+    @Autowired
+    private ExpenseService expenseService;
 
-### Autenticação — `/auth`
+    @GetMapping
+    @Operation(summary = "Lista todas as despesas")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<ExpenseDTOresponse>> findAll() {
+        return ResponseEntity.ok().body(expenseService.findAllExpenses());
+    }
 
-| Método | Rota | Descrição | Auth |
-|---|---|---|---|
-| POST | `/auth/register` | Registra novo usuário | Pública |
-| POST | `/auth/login` | Login e retorna token JWT | Pública |
-
-### Usuários — `/users`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/users` | Lista todos os usuários |
-| GET | `/users/{id}` | Busca usuário por ID |
-| PUT | `/users/update/{id}` | Atualiza dados do usuário |
-| DELETE | `/users/delete/{id}` | Remove usuário |
-
-### Contas Bancárias — `/bank-account`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/bank-account` | Lista todas as contas |
-| GET | `/bank-account/{id}` | Busca conta por ID |
-| POST | `/bank-account/insert` | Cadastra nova conta |
-| PUT | `/bank-account/update/{id}` | Atualiza conta |
-| DELETE | `/bank-account/delete/{id}` | Remove conta |
-
-### Categorias — `/category`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/category` | Lista todas as categorias |
-| POST | `/category/insert` | Cadastra nova categoria |
-| PUT | `/category/update/{id}` | Atualiza categoria |
-| DELETE | `/category/delete/{id}` | Remove categoria |
-
-### Despesas Mensais — `/month`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/month` | Lista todos os meses |
-| POST | `/month/insert` | Cadastra novo mês |
-| PUT | `/month/update/{id}` | Atualiza limite de gasto |
-| DELETE | `/month/delete/{id}` | Remove mês |
-
-### Despesas — `/expense`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/expense` | Lista todas as despesas |
-| POST | `/expense/insert` | Cadastra nova despesa |
-| DELETE | `/expense/delete/{id}` | Remove despesa |
-
-### Localizações — `/location`
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/location` | Lista todas as localizações |
-| POST | `/location/insert` | Cadastra nova localização |
-| PUT | `/location/update/{id}` | Atualiza localização |
-| DELETE | `/location/delete/{id}` | Remove localização |
-
----
-
-## Tratamento de Exceções
-
-| Exceção | HTTP | Quando ocorre |
-|---|---|---|
-| `ResourceNotFoundException` | 404 | Recurso não encontrado |
-| `DuplicateResourceException` | 409 | E-mail já cadastrado |
-| `BusinessException` | 400 | Regras de negócio violadas |
-| `Exception` | 500 | Erros inesperados |
-
-Formato padrão de erro:
-
-```json
-{
-  "timestamp": "2026-05-01T12:00:00Z",
-  "status": 404,
-  "error": "Resource not found",
-  "message": "User not found with id: 99"
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar despesa por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Despesa não encontrada")
+    public ResponseEntity<ExpenseDTOresponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(expenseService.findExpenseById(id));
+    }
+    @PostMapping(value = "/insert")
+    @Operation(summary = "Insere uma nova despesa")
+    @ApiResponse(responseCode = "201", description = "Despesa criada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados da despesa inválidos")
+    public ResponseEntity<ExpenseDTOresponse> insertExpense(@RequestBody ExpenseDTOrequest expenseDTO) {
+        ExpenseDTOresponse expense = expenseService.insertExpense(expenseDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(expense.getId()).toUri();
+        return ResponseEntity.created(uri).body(expense);
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Exclui uma despesa")
+    @ApiResponse(responseCode = "204", description = "Despesa excluída com sucesso")
+    @ApiResponse(responseCode = "404", description = "Despesa não encontrada")
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {
+        expenseService.deleteExpense(id);
+        return ResponseEntity.noContent().build();
+    }
 }
-```
 
----
 
-## Como Executar
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/HomeController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-### Pré-requisitos
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-- Java 25+
-- Docker Desktop
-- Maven
+import java.io.IOException;
 
-### Passos
+@RestController
+public class HomeController {
 
-```bash
-git clone https://github.com/Antonio-Eduardo/expense_tracker_API.git
-cd expense_tracker_API
-```
+    @GetMapping("/")
+    public void home(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/swagger-ui/index.html");
+    }
+}
 
-```bash
-docker run --name expense-postgres \
-  -e POSTGRES_PASSWORD=minhasenha \
-  -e POSTGRES_DB=expense_tracker \
-  -p 5432:5432 \
-  -d postgres:16-alpine
-```
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/LocationController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-Configure o `application-dev.properties`:
+import com.eduardo.expense_tracker.dtos.request.LocationDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LocationDTOresponse;
+import com.eduardo.expense_tracker.entities.Location;
+import com.eduardo.expense_tracker.services.LocationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/expense_tracker
-spring.datasource.username=postgres
-spring.datasource.password=minhasenha
-api.security.token.secret=seu-segredo-jwt-aqui
-```
+import java.util.List;
 
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
+@RestController
+@RequestMapping("/location")
+@Tag(name = "Locations", description = "Operações relacionadas às Localizações")
+public class LocationController {
 
----
+    @Autowired
+    private LocationService locationService;
 
-## Testes
+    @GetMapping
+    @Operation(summary = "Lista todas as localizações")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<LocationDTOresponse>> findAll() {
+        return ResponseEntity.ok().body(locationService.findAllLocations());
+    }
 
-```bash
-mvn test
-```
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar localização por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Localização não encontrada")
+    public ResponseEntity<LocationDTOresponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(locationService.findLocationById(id));
+    }
+    @PostMapping(value = "/insert")
+    @Operation(summary = "Insere uma nova localização")
+    @ApiResponse(responseCode = "201", description = "Localização criada com sucesso")
+    public ResponseEntity<LocationDTOresponse> insertLocation(@RequestBody LocationDTOrequest data) {
+        LocationDTOresponse locationDTO = locationService.insertLocation(data);
+        return ResponseEntity.ok().body(locationDTO);
+    }
+    @PutMapping(value = "/update/{id}")
+    @Operation(summary = "Atualiza uma localização")
+    @ApiResponse(responseCode = "200", description = "Localização atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Localização não encontrada")
+    public ResponseEntity<LocationDTOresponse> updateLocation(@PathVariable Long id, @RequestBody LocationDTOrequest locationDTO) {
+      return ResponseEntity.ok().body(locationService.locationUpdate(id, locationDTO));
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Exclui uma localização")
+    @ApiResponse(responseCode = "204", description = "Localização excluída com sucesso")
+    @ApiResponse(responseCode = "404", description = "Localização não encontrada")
+    public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
+        locationService.deleteLocation(id);
+        return ResponseEntity.noContent().build();
+    }
 
-### Testes de Integração (Testcontainers)
+}
 
-Valida o fluxo completo contra PostgreSQL real em container:
-- Criação de localização, usuário, conta bancária, categoria e despesas
-- Processamento de despesas com atualização de total e limite
-- Desconto do total mensal no saldo da conta bancária
 
-### Testes Unitários (Mockito)
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/MonthlyExpenseController.java ===
+package com.eduardo.expense_tracker.controllers;
 
-Cobrem os principais fluxos do `UserService` com repositórios mockados.
+import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.MonthlyExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.services.MonthlyExpenseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
----
+import java.net.URI;
+import java.util.List;
 
-## Melhorias Futuras
+@RestController
+@RequestMapping("month")
+@Tag(name = "Monthly Expenses", description = "Operações relacionadas às Despesas Mensais")
+public class MonthlyExpenseController {
 
-- [ ] Notificação ao atingir limite de categoria
-- [ ] DTOs de resposta para evitar exposição direta das entidades nos GETs
-- [ ] Testes unitários para os demais serviços
-- [ ] Documentação da API com Swagger/OpenAPI
+    @Autowired
+    MonthlyExpenseService monthlyExpenseService;
+
+    @GetMapping
+    @Operation(summary = "Lista todas as despesas mensais")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<MonthlyExpenseDTOresponse>> findAll() {
+        return ResponseEntity.ok().body(monthlyExpenseService.findAllMonthlyExpenses());
+    }
+
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar despesa mensal por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Despesa mensal não encontrada")
+    public ResponseEntity<MonthlyExpenseDTOresponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(monthlyExpenseService.findMonthlyExpenseById(id));
+    }
+    @PostMapping(value = "/insert")
+    @Operation(summary = "Insere uma nova despesa mensal")
+    @ApiResponse(responseCode = "201", description = "Despesa mensal criada com sucesso")
+    public ResponseEntity<MonthlyExpenseDTOresponse> insertMonthlyExpense(@RequestBody MonthlyExpenseDTOrequest monthlyExpenseDTO) {
+        MonthlyExpenseDTOresponse monthlyExpense = monthlyExpenseService.insertMonthlyExpense(monthlyExpenseDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(monthlyExpense.getId()).toUri();
+        return ResponseEntity.created(uri).body(monthlyExpense);
+    }
+    @PutMapping(value = "/update/{id}")
+    @Operation(summary = "Atualiza uma despesa mensal")
+    @ApiResponse(responseCode = "200", description = "Despesa mensal atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Despesa mensal não encontrada")
+    public ResponseEntity<MonthlyExpenseDTOresponse> updateMonthlyExpense(@PathVariable Long id, @RequestBody MonthlyExpenseDTOrequest monthlyExpense) {
+        return ResponseEntity.ok().body(monthlyExpenseService.updateMonthlyExpense(id, monthlyExpense));
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Exclui uma despesa mensal")
+    @ApiResponse(responseCode = "204", description = "Despesa mensal excluída com sucesso")
+    @ApiResponse(responseCode = "404", description = "Despesa mensal não encontrada")
+    public ResponseEntity<Void> deleteMonthlyExpense(@PathVariable Long id) {
+        monthlyExpenseService.deleteMonthlyExpense(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/controllers/UserController.java ===
+package com.eduardo.expense_tracker.controllers;
+
+import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+@Tag(name = "Users",description = "Operações relacionadas aos Usuários")
+public class UserController {
+
+    @Autowired
+    UserService userService;
+
+    @GetMapping
+    @Operation(summary = "Lista todos os usuários")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    public ResponseEntity<List<UserDTOresponse>> findAll(){
+        return ResponseEntity.ok().body(userService.userFindAll());
+    }
+
+    @GetMapping(value = "/{id}")
+    @Operation(summary = "Listar usuário por Id")
+    @ApiResponse(responseCode = "200", description = "Sucesso")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    public ResponseEntity<UserDTOresponse> findById(@PathVariable Long id){
+        return ResponseEntity.ok().body(userService.userFindById(id));
+    }
+    @DeleteMapping(value = "/delete/{id}")
+    @Operation(summary = "Deletar um usuário por Id")
+    @ApiResponse(responseCode = "204", description = "Usuário deletado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PutMapping(value = "/update/{id}")
+    @Operation(summary = "Atualizar um usuário pelo Id")
+    @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    public ResponseEntity<UserDTOresponse> updateUser(@PathVariable Long id, @RequestBody UserDTOrequest user) {
+        return ResponseEntity.ok().body(userService.updateUser(id, user));
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/AuthenticationDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+public record AuthenticationDTOrequest(String email, String password) {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/BankAccountDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+@Data
+public class BankAccountDTOrequest {
+    private BigDecimal balance;
+    private String typeAccount;
+    private Instant creditCardClosingDate;
+    private Long userId;
+
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/CategoryDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class CategoryDTOrequest {
+    private BigDecimal notifyLimit;
+    private String name;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/ExpenseDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExpenseDTOrequest {
+    private BigDecimal amount;
+    private String description;
+    private Instant expenseMoment;
+    private Long monthlyExpenseId;
+    private Long categoryId;
+
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/LocationDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.Data;
+
+@Data
+public class LocationDTOrequest {
+    private String city;
+    private String state;
+    private String address1;
+    private String address2;
+    private String zipCode;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/LoginResponseDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+public record LoginResponseDTOrequest(String token) {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/MonthlyExpenseDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+@Data
+public class MonthlyExpenseDTOrequest {
+
+    private BigDecimal monthTotal;
+    private String month;
+    private BigDecimal limitExpense;
+    private Long bankAccountId;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/RegisterDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import com.eduardo.expense_tracker.entities.user.UserRole;
+
+public record RegisterDTOrequest(
+        String email,
+        String password,
+        UserRole role) {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/request/UserDTOrequest.java ===
+package com.eduardo.expense_tracker.dtos.request;
+
+import lombok.Data;
+
+import java.time.LocalDate;
+
+@Data
+public class UserDTOrequest {
+    public String name;
+    public String cpf;
+    public String phone;
+    public LocalDate birthDate;
+    public Long locationId;
+}
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/BankAccountDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+@Data
+public class BankAccountDTOresponse {
+    private Long id;
+    private BigDecimal balance;
+    private String typeAccount;
+    private Instant creditCardClosingDate;
+    private Long userId;
+
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/CategoryDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import com.eduardo.expense_tracker.entities.Expense;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.Set;
+
+@Data
+public class CategoryDTOresponse {
+    private Long id;
+    private BigDecimal notifyLimit;
+    private String name;
+    private Set<ExpenseDTOresponse> expenseDTOS;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/ExpenseDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExpenseDTOresponse {
+    private Long id;
+    private BigDecimal amount;
+    private String description;
+    private Instant expenseMoment;
+    private Long monthlyExpenseId;
+    private Long categoryId;
+
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/LocationDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import lombok.Data;
+
+@Data
+public class LocationDTOresponse {
+    private Long id;
+    private String city;
+    private String state;
+    private String address1;
+    private String address2;
+    private String zipCode;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/LoginResponseDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+public record LoginResponseDTOresponse(String token) {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/MonthlyExpenseDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+@Data
+public class MonthlyExpenseDTOresponse {
+    private Long id;
+    private BigDecimal monthTotal;
+    private String month;
+    private BigDecimal limitExpense;
+    private Long bankAccountId;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/RegisterDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import com.eduardo.expense_tracker.entities.user.UserRole;
+import lombok.Data;
+
+@Data
+public class RegisterDTOresponse{
+    public Long id;
+    public String email;
+    public UserRole role;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/dtos/response/UserDTOresponse.java ===
+package com.eduardo.expense_tracker.dtos.response;
+
+import lombok.Data;
+
+import java.time.LocalDate;
+
+@Data
+public class UserDTOresponse {
+    private Long id;
+    public String name;
+    public String email;
+    public String cpf;
+    public String phone;
+    public LocalDate birthDate;
+    public Long locationId;
+}
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/BankAccount.java ===
+package com.eduardo.expense_tracker.entities;
+
+import com.eduardo.expense_tracker.entities.user.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Set;
+
+@Entity
+@Table(name = "tb_bank_account")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class BankAccount {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal balance;
+    private String typeAccount;
+    private Instant creditCardClosingDate;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL)
+    private Set<MonthlyExpense> monthlyExpense;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof BankAccount that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/Category.java ===
+package com.eduardo.expense_tracker.entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+
+@Entity
+@Table(name = "tb_category")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Category {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal notifyLimit;
+    private String name;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Expense> expenses;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Category category)) return false;
+        return Objects.equals(id, category.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/Expense.java ===
+package com.eduardo.expense_tracker.entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Objects;
+
+@Entity
+@Table(name = "tb_expense")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Expense {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal amount;
+    private String description;
+    private Instant expenseMoment;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "monthly_expense_id")
+    private MonthlyExpense monthlyExpense;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Expense expense)) return false;
+        return Objects.equals(id, expense.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/Location.java ===
+package com.eduardo.expense_tracker.entities;
+
+import com.eduardo.expense_tracker.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import java.util.Objects;
+
+@Entity
+@Table(name = "tb_location")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Location {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String city;
+    private String state;
+    private String address1;
+    private String address2;
+    private String zipCode;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
+    private java.util.Set<User> users;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Location location)) return false;
+        return Objects.equals(id, location.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/MonthlyExpense.java ===
+package com.eduardo.expense_tracker.entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.Set;
+
+@Entity
+@Table(name = "tb_monthly_expense")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class MonthlyExpense {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private BigDecimal monthTotal;
+    @Column(name = "expense_month")
+    private String month;
+
+    private BigDecimal limitExpense;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "bank_account_id")
+    private BankAccount bankAccount;
+
+    @OneToMany(mappedBy = "monthlyExpense", cascade = CascadeType.ALL)
+    private Set<Expense> expenses;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof MonthlyExpense that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/user/User.java ===
+package com.eduardo.expense_tracker.entities.user;
+
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.Location;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+
+@Entity
+@Table(name = "tb_user")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "id")
+public class User implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+    @JsonIgnore
+    private String password;
+    private String cpf;
+    private String phone;
+    private LocalDate birthDate;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    private Location location;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<BankAccount> accounts;
+
+    public User(String email, String encryptedPassword, UserRole role) {
+        this.email = email;
+        this.password = encryptedPassword;
+        this.role = role;
+    }
+
+    @JsonIgnore
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (this.role == UserRole.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+    @JsonIgnore
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @JsonIgnore
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/entities/user/UserRole.java ===
+package com.eduardo.expense_tracker.entities.user;
+
+public enum UserRole {
+    ADMIN("admin"),
+    USER("user");
+
+    private String role;
+
+    UserRole(String role) {
+        this.role = role;
+    }
+
+    public String getRole() {
+        return role;
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/ExpenseTrackerApplication.java ===
+package com.eduardo.expense_tracker;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ExpenseTrackerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ExpenseTrackerApplication.class, args);
+	}
+
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/exception/GlobalExceptionHandler.java ===
+package com.eduardo.expense_tracker.infra.exception;
+
+import com.eduardo.expense_tracker.services.exceptions.BusinessException;
+import com.eduardo.expense_tracker.services.exceptions.DuplicateResourceException;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.Instant;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<StandartError> resourceNotFound(ResourceNotFoundException e){
+        StandartError error = new StandartError(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Resource not found",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<StandartError> genericException(Exception e){
+        StandartError error = new StandartError(
+                Instant.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal server error",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<StandartError> duplicateResource(DuplicateResourceException e){
+        StandartError error = new StandartError(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Duplicate resource",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<StandartError> businessException(BusinessException e){
+        StandartError error = new StandartError(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Business exception",
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/exception/StandartError.java ===
+package com.eduardo.expense_tracker.infra.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class StandartError {
+    Instant timestamp;
+    Integer status;
+    String error;
+    String message;
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/security/AuthorizationService.java ===
+package com.eduardo.expense_tracker.infra.security;
+
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AuthorizationService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository repository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        return repository.findByEmail(username).orElseThrow(() -> new RuntimeException("User not found with email: " + username));
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/security/SecurityConfiguration.java ===
+package com.eduardo.expense_tracker.infra.security;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfiguration {
+
+    @Autowired
+    private SecurityFilter sec;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(false);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/api-docs/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers("/h2-console", "/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(sec, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration){
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+}
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/security/SecurityFilter.java ===
+package com.eduardo.expense_tracker.infra.security;
+
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Optional;
+
+@Component
+public class SecurityFilter extends OncePerRequestFilter {
+
+    @Autowired
+    TokenService tokenService;
+    @Autowired
+    UserRepository userRepository;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("Filtro passando na URL: " + request.getRequestURI());
+        var token = this.recoveryToken(request);
+        if (token != null) {
+            var email = tokenService.validateToken(token);
+            Optional<User> user = userRepository.findByEmail(email);
+
+            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.get().getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        filterChain.doFilter(request, response);
+    }
+
+    private String recoveryToken(HttpServletRequest request) {
+        var authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null) {
+            return authorizationHeader.replace("Bearer ", "");
+        }
+        return null;
+    }
+}
+
+
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/infra/security/TokenService.java ===
+package com.eduardo.expense_tracker.infra.security;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.eduardo.expense_tracker.entities.user.User;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+
+@Service
+public class TokenService {
+
+    private String secret;
+
+    public TokenService(@Value("${api.security.token.secret}") String secret) {
+        this.secret = secret;
+    }
+
+    public String generateToken(User user) {
+        System.out.println(">>>>> SECRET NO GENERATE: [" + secret + "]");
+        try{
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            String token = JWT.create()
+                    .withIssuer("expense-tracker-api")
+                    .withSubject(user.getEmail())
+                    .withExpiresAt(getExpirationTime())
+                    .sign((algorithm));
+            return token;
+        }catch (JWTCreationException e){
+            throw new RuntimeException("Error generating token", e);
+        }
+    }
+    public String validateToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            String email = JWT.require(algorithm)
+                    .withIssuer("expense-tracker-api")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+            System.out.println(">>>>> EMAIL EXTRAÍDO: [" + email + "]");
+            return email;
+        } catch (JWTVerificationException e) {
+            System.out.println(">>>>> ERRO NA VERIFICAÇÃO: " + e.getMessage());
+            return "";
+        }
+    }
+    private Instant getExpirationTime() {
+        return Instant.now().plusSeconds(86400); //24 horas
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/BankAccountRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.BankAccount;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BankAccountRepository extends JpaRepository<BankAccount,Long> {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/CategoryRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CategoryRepository extends JpaRepository<Category,Long> {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/ExpenseRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.Expense;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ExpenseRepository extends JpaRepository<Expense,Long> {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/LocationRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.Location;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface LocationRepository extends JpaRepository<Location,Long> {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/MonthlyExpenseRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface MonthlyExpenseRepository extends JpaRepository<MonthlyExpense,Long> {
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/repositories/UserRepository.java ===
+package com.eduardo.expense_tracker.repositories;
+
+import com.eduardo.expense_tracker.entities.user.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+   Optional<User> findByEmail(String email);
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/BankAccountService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class BankAccountService {
+
+    @Autowired
+    private BankAccountRepository repository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Transactional
+    public BankAccountDTOresponse insertBankAccount(BankAccountDTOrequest bankAccount){
+        BankAccount bankAccountDB = new BankAccount();
+        User user = userRepository.findById(bankAccount.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + bankAccount.getUserId()));
+        bankAccountDB.setTypeAccount(bankAccount.getTypeAccount());
+        bankAccountDB.setCreditCardClosingDate(bankAccount.getCreditCardClosingDate());
+        bankAccountDB.setBalance(bankAccount.getBalance());
+        bankAccountDB.setUser(user);
+
+        bankAccountDB = repository.save(bankAccountDB);
+
+        return convertToBankAccountResponseDTO(bankAccountDB);
+    }
+    public BankAccountDTOresponse findBankAccountById(Long id){
+        BankAccount bk = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException
+                        ("Bank Account not found" + id));
+        return convertToBankAccountResponseDTO(bk);
+    }
+
+    public List<BankAccountDTOresponse> findAllBankAccounts(){
+
+        return repository.findAll().stream().map(this::convertToBankAccountResponseDTO).toList();
+    }
+
+    @Transactional
+    public void deleteBankAccount(Long id) {
+        repository.deleteById(id);
+    }
+
+    public void updateData(BankAccount bankAccountFind, BankAccountDTOrequest obj){
+        if (obj != null) {
+            bankAccountFind.setTypeAccount(obj.getTypeAccount());
+        }
+        if (obj != null) {
+            bankAccountFind.setCreditCardClosingDate(obj.getCreditCardClosingDate());
+        }
+    }
+
+    @Transactional
+    public BankAccountDTOresponse updateBankAccount(Long id, BankAccountDTOrequest obj){
+        BankAccount bankAccountFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + id));
+            updateData(bankAccountFind, obj);
+
+            bankAccountFind = repository.save(bankAccountFind);
+           return convertToBankAccountResponseDTO(bankAccountFind);
+    }
+    public BankAccountDTOresponse convertToBankAccountResponseDTO(BankAccount bk){
+        BankAccountDTOresponse response = new BankAccountDTOresponse();
+        if (bk.getId() != null) {
+            response.setId(bk.getId());
+        }
+        if (bk.getTypeAccount() != null) {
+            response.setTypeAccount(bk.getTypeAccount());
+        }
+        if (bk.getBalance() != null) {
+            response.setBalance(bk.getBalance());
+        }
+        if (bk.getUser() != null) {
+            response.setUserId(bk.getUser().getId());
+        }
+        if (bk.getCreditCardClosingDate() != null) {
+            response.setCreditCardClosingDate(bk.getCreditCardClosingDate());
+        }
+        return response;
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/CategoryService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.CategoryDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.repositories.CategoryRepository;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class CategoryService {
+
+    @Autowired
+        private CategoryRepository repository;
+
+        @Transactional
+        public CategoryDTOresponse insertCategory(CategoryDTOrequest categoryDTO){
+            Category category = new Category();
+            category.setName(categoryDTO.getName());
+            category.setNotifyLimit(categoryDTO.getNotifyLimit());
+
+            Category saveCategory = repository.save(category);
+
+            CategoryDTOresponse response = new CategoryDTOresponse();
+            response.setId(saveCategory.getId());
+            response.setName(saveCategory.getName());
+            response.setNotifyLimit(saveCategory.getNotifyLimit());
+
+            return response;
+        }
+
+        public CategoryDTOresponse findCategoryById(Long id){
+            Category category = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category not fond" + id));
+
+           return convertToResponseDTO(category);
+        }
+
+        public List<CategoryDTOresponse> findAllCategories(){
+
+            return repository.findAll().stream().map(
+                    this::convertToResponseDTO).toList();
+        }
+
+        @Transactional
+        public void deleteCategory(Long id) {
+            repository.deleteById(id);
+        }
+
+        public void updateData(Category categoryFind, CategoryDTOrequest obj){
+            if (obj.getNotifyLimit() != null) {
+                categoryFind.setNotifyLimit(obj.getNotifyLimit());
+            }
+            if (obj.getName() != null) {
+                categoryFind.setName(obj.getName());
+            }
+        }
+
+        @Transactional
+        public CategoryDTOresponse updateCategory(Long id, CategoryDTOrequest obj){
+            Category categoryFind = repository.findById(id).orElseThrow(
+                    ()  -> new ResourceNotFoundException("Category not found" + id));
+                updateData(categoryFind, obj);
+                categoryFind = repository.save(categoryFind);
+               return convertToResponseDTO(categoryFind);
+        }
+    public CategoryDTOresponse convertToResponseDTO(Category category) {
+
+        CategoryDTOresponse response = new CategoryDTOresponse();
+        response.setId(category.getId());
+        response.setName(category.getName());
+        response.setNotifyLimit(category.getNotifyLimit());
+        if (category.getExpenses() != null){
+            Set<ExpenseDTOresponse> expenseDTOList = category.getExpenses().stream().map(
+                    expense -> new ExpenseDTOresponse(
+                            expense.getId(),
+                            expense.getAmount(),
+                            expense.getDescription(),
+                            expense.getExpenseMoment(),
+                            expense.getCategory().getId(),
+                            expense.getMonthlyExpense().getId()
+                    )).collect(Collectors.toSet());
+        response.setExpenseDTOS(expenseDTOList);
+    } else {
+            response.setExpenseDTOS(null);
+        }
+        return response;
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/exceptions/BusinessException.java ===
+package com.eduardo.expense_tracker.services.exceptions;
+
+public class BusinessException extends RuntimeException {
+    public BusinessException(String message) {
+        super(message);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/exceptions/DuplicateResourceException.java ===
+package com.eduardo.expense_tracker.services.exceptions;
+
+public class DuplicateResourceException extends RuntimeException {
+    public DuplicateResourceException(String message) {
+        super(message);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/exceptions/ResourceNotFoundException.java ===
+package com.eduardo.expense_tracker.services.exceptions;
+
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/ExpenseService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.CategoryRepository;
+import com.eduardo.expense_tracker.repositories.ExpenseRepository;
+import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
+import com.eduardo.expense_tracker.services.exceptions.BusinessException;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
+@Service
+public class ExpenseService {
+
+    @Autowired
+    private ExpenseRepository repository;
+    @Autowired
+    private MonthlyExpenseRepository monthlyExpenseRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Transactional
+    public ExpenseDTOresponse insertExpense(ExpenseDTOrequest expenseDTO){
+        Expense expenseDB = new Expense();
+
+        MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expenseDTO.getMonthlyExpenseId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Monthly Expense not found with id: "
+                        + expenseDTO.getMonthlyExpenseId()));
+
+        Category category = categoryRepository.findById(expenseDTO.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Categoria não encontrada"
+                        + expenseDTO.getCategoryId()));
+
+        expenseDB.setAmount(expenseDTO.getAmount());
+        expenseDB.setDescription(expenseDTO.getDescription());
+        expenseDB.setExpenseMoment(Instant.now());
+        expenseDB.setMonthlyExpense(monthlyExpense);
+        expenseDB.setCategory(category);
+        expenseDB = repository.save(expenseDB);
+
+        return convertToResponseDTO(expenseDB);
+    }
+
+
+     public ExpenseDTOresponse findExpenseById(Long id){
+         Expense expense = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + id));
+         return convertToResponseDTO(expense);     }
+
+     public List<ExpenseDTOresponse> findAllExpenses(){
+
+        return repository.findAll().stream().map(this::convertToResponseDTO).collect(java.util.stream.Collectors.toList());
+     }
+
+     @Transactional
+     public void deleteExpense(Long id) {
+         repository.deleteById(id);
+     }
+
+     @Transactional
+     public void processExpense(Expense expense) {
+         MonthlyExpense monthlyExpense = monthlyExpenseRepository.findById(expense.getMonthlyExpense().getId()).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + expense.getMonthlyExpense().getId()));
+         if (expense.getAmount().compareTo(monthlyExpense.getLimitExpense()) > 0) {
+             throw new BusinessException("Expense amount exceeds the monthly limit.");
+         }
+             BigDecimal updateTotal = monthlyExpense.getMonthTotal().add(expense.getAmount());
+             monthlyExpense.setMonthTotal(updateTotal);
+
+             BigDecimal updateLimit = monthlyExpense.getLimitExpense().subtract(expense.getAmount());
+             monthlyExpense.setLimitExpense(updateLimit);
+             monthlyExpenseRepository.save(monthlyExpense);
+     }
+     public ExpenseDTOresponse convertToResponseDTO(Expense expense){
+        ExpenseDTOresponse response = new ExpenseDTOresponse();
+        response.setId(expense.getId());
+        response.setAmount(expense.getAmount());
+        response.setExpenseMoment(expense.getExpenseMoment());
+        response.setDescription(expense.getDescription());
+        response.setMonthlyExpenseId(expense.getMonthlyExpense().getId());
+        response.setCategoryId(expense.getCategory().getId());
+
+        return response;
+     }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/LocationService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.LocationDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LocationDTOresponse;
+import com.eduardo.expense_tracker.entities.Location;
+import com.eduardo.expense_tracker.repositories.LocationRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class LocationService {
+
+    @Autowired
+    private LocationRepository repository;
+
+    @Transactional
+     public LocationDTOresponse insertLocation(LocationDTOrequest locationDTO){
+        Location location = new Location();
+        location.setCity(locationDTO.getCity());
+        location.setState(locationDTO.getState());
+        location.setAddress1(locationDTO.getAddress1());
+        location.setAddress2(locationDTO.getAddress2());
+        location.setZipCode(locationDTO.getZipCode());
+
+        Location savedLocation = repository.save(location);
+
+        LocationDTOresponse response = new LocationDTOresponse();
+        response.setId(savedLocation.getId());
+        response.setCity(savedLocation.getCity());
+        response.setZipCode(savedLocation.getZipCode());
+        response.setState(savedLocation.getState());
+        response.setAddress1(savedLocation.getAddress1());
+        response.setAddress2(savedLocation.getAddress2());
+
+         return response;
+     }
+    public LocationDTOresponse findLocationById(Long id){
+        Location location = repository.findById(id).orElseThrow(() -> new RuntimeException("Location not found with id: " + id));
+        return convertToDTOresponse(location);
+    }
+     public List<LocationDTOresponse> findAllLocations(){
+         return repository.findAll().stream().map(this::convertToDTOresponse).toList();
+     }
+     @Transactional
+     public void deleteLocation(Long id) {
+         repository.deleteById(id);
+     }
+     public void updateData(Location locationFind, LocationDTOrequest obj){
+        if (obj.getCity() != null) {
+            locationFind.setCity(obj.getCity());
+        }
+        if (obj.getState() != null) {
+            locationFind.setState(obj.getState());
+        }
+        if (obj.getAddress1() != null) {
+            locationFind.setAddress1(obj.getAddress1());
+        }
+        if (obj.getAddress2() != null) {
+            locationFind.setAddress2(obj.getAddress2());
+        }
+        if (obj.getZipCode() != null) {
+            locationFind.setZipCode(obj.getZipCode());
+        }
+     }
+     @Transactional
+     public LocationDTOresponse locationUpdate(Long id, LocationDTOrequest obj) {
+         Location locationFind = repository.findById(id).orElseThrow(() -> new RuntimeException("Location not found with id: " + id));
+             updateData(locationFind, obj);
+             locationFind = repository.save(locationFind);
+              return convertToDTOresponse(locationFind);
+     }
+
+     public LocationDTOresponse convertToDTOresponse(Location location){
+         LocationDTOresponse locationDTOresponse = new LocationDTOresponse();
+         locationDTOresponse.setId(location.getId());
+         locationDTOresponse.setCity(location.getCity());
+         locationDTOresponse.setState(location.getState());
+         locationDTOresponse.setAddress1(location.getAddress1());
+         locationDTOresponse.setAddress2(location.getAddress2());
+         locationDTOresponse.setZipCode(location.getZipCode());
+
+         return locationDTOresponse;
+     }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/MonthlyExpenseService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.MonthlyExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
+import com.eduardo.expense_tracker.services.exceptions.BusinessException;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Service
+public class MonthlyExpenseService {
+
+    @Autowired
+    MonthlyExpenseRepository repository;
+    @Autowired
+    BankAccountRepository bankAccountRepository;
+
+    @Transactional
+    public MonthlyExpenseDTOresponse insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){
+        MonthlyExpense monthlyExpenseDB = new MonthlyExpense();
+
+        BankAccount bankAccount = bankAccountRepository.findById(monthlyExpenseDTO.getBankAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpenseDTO.getBankAccountId()));
+
+        monthlyExpenseDB.setLimitExpense(monthlyExpenseDTO.getLimitExpense());
+        monthlyExpenseDB.setBankAccount(bankAccount);
+        monthlyExpenseDB.setMonthTotal(monthlyExpenseDTO.getMonthTotal());
+        monthlyExpenseDB.setMonth(monthlyExpenseDTO.getMonth());
+        monthlyExpenseDB = repository.save(monthlyExpenseDB);
+        return convertDTOresponse(monthlyExpenseDB);
+    }
+
+    public MonthlyExpenseDTOresponse findMonthlyExpenseById(Long id){
+       MonthlyExpense monthlyExpense = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + id));
+        return convertDTOresponse(monthlyExpense);
+    }
+
+    public List<MonthlyExpenseDTOresponse> findAllMonthlyExpenses(){
+       return repository.findAll().stream().map(this::convertDTOresponse).toList();
+    }
+
+    @Transactional
+    public void deleteMonthlyExpense(Long id) {
+        repository.deleteById(id);
+    }
+
+    @Transactional
+    public MonthlyExpenseDTOresponse updateMonthlyExpense(Long id, MonthlyExpenseDTOrequest obj){
+            MonthlyExpense monthlyExpenseFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Monthly Expense not found with id: " + id));
+                updateData(monthlyExpenseFind, obj);
+                monthlyExpenseFind = repository.save(monthlyExpenseFind);
+                return convertDTOresponse(monthlyExpenseFind);
+        }
+    public void updateData(MonthlyExpense monthlyExpenseFind, MonthlyExpenseDTOrequest obj) {
+            monthlyExpenseFind.setLimitExpense(obj.getLimitExpense());
+        }
+    @Transactional
+    public void processMonthlyExpense(MonthlyExpense monthlyExpense){
+            BankAccount bankAccount = bankAccountRepository.findById(monthlyExpense.getBankAccount().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Bank Account not found with id: " + monthlyExpense.getBankAccount().getId()));
+            if (bankAccount.getBalance().compareTo(monthlyExpense.getMonthTotal()) < 0) {
+                throw new BusinessException("Insufficient balance in the bank account to cover the monthly expense.");
+            } else {
+                BigDecimal updateBalance = bankAccount.getBalance().subtract(monthlyExpense.getMonthTotal());
+                bankAccount.setBalance(updateBalance);
+                bankAccountRepository.save(bankAccount);
+            }
+        }
+
+        public MonthlyExpenseDTOresponse convertDTOresponse(MonthlyExpense monthlyExpense) {
+            MonthlyExpenseDTOresponse medr = new MonthlyExpenseDTOresponse();
+            medr.setId(monthlyExpense.getId());
+            medr.setLimitExpense(monthlyExpense.getLimitExpense());
+            medr.setMonthTotal(monthlyExpense.getMonthTotal());
+            medr.setMonth(monthlyExpense.getMonth());
+            if (monthlyExpense.getBankAccount() != null) {
+                medr.setBankAccountId(monthlyExpense.getBankAccount().getId());
+            }
+            return medr;
+        }
+    }
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/services/UserService.java ===
+package com.eduardo.expense_tracker.services;
+
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.RegisterDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
+import com.eduardo.expense_tracker.entities.Location;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.repositories.LocationRepository;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.exceptions.DuplicateResourceException;
+import com.eduardo.expense_tracker.services.exceptions.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class UserService {
+
+    @Autowired
+    UserRepository repository;
+
+    @Autowired
+    private LocationRepository locationRepository;
+
+    public UserDTOresponse userFindById(Long id){
+        User user = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(
+                "User not Found" + id));
+
+        return convertToUserResponseDTO(user);
+    }
+
+    public List<UserDTOresponse> userFindAll(){
+        return repository.findAll().stream()
+                .map(this::convertToUserResponseDTO).toList();
+    }
+
+    @Transactional
+    public void deleteUser(Long id){
+        repository.deleteById(id);
+    }
+
+    @Transactional
+     public UserDTOresponse updateUser(Long id, UserDTOrequest obj){
+         User userFind = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found" + id));
+         updateData(userFind,obj);
+         userFind = repository.save(userFind);
+         return convertToUserResponseDTO(userFind);
+     }
+     private void updateData(User userFind, UserDTOrequest obj) {
+        if (obj.getName() != null) {
+            userFind.setName(obj.getName());
+        }
+        if (obj.getPhone() !=  null) {
+            userFind.setPhone(obj.getPhone());
+        }
+        if (obj.getLocationId() != null){
+            Location location = locationRepository.findById(obj.getLocationId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Location not found with id: " + obj.getLocationId()));
+            userFind.setLocation(location);
+        }
+        if (obj.getCpf() != null) {
+            userFind.setCpf(obj.getCpf());
+        }
+        if (obj.getBirthDate() != null) {
+            userFind.setBirthDate(obj.getBirthDate());
+        }
+     }
+     @Transactional
+    public RegisterDTOresponse createUser(RegisterDTOrequest data) {
+        if (repository.findByEmail(data.email()).isPresent()) {
+            throw new DuplicateResourceException("Email already in use: " + data.email());
+        }
+        User user = new User();
+        user.setEmail(data.email());
+        user.setPassword(data.password());
+        user.setRole(data.role());
+        user = repository.save(user);
+        return convertToRegisterDTO(user);
+    }
+    public UserDTOresponse findByEmail(String email) {
+       User user = repository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        return convertToUserResponseDTO(user);
+    }
+    public UserDTOresponse convertToUserResponseDTO(User user){
+        UserDTOresponse response = new UserDTOresponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setCpf(user.getCpf());
+        response.setPhone(user.getPhone());
+        response.setBirthDate(user.getBirthDate());
+        if (user.getLocation() != null){
+            response.setLocationId(user.getLocation().getId());
+        }
+        return response;
+    }
+    public RegisterDTOresponse convertToRegisterDTO(User user){
+        RegisterDTOresponse response = new RegisterDTOresponse();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        return response;
+    }
+}
+
+
+=== ARQUIVO: ./src/main/java/com/eduardo/expense_tracker/swagger/config/SwaggerConfig.java ===
+package com.eduardo.expense_tracker.swagger.config;
+
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SwaggerConfig {
+
+    @Value("${swagger.server.url:}")
+    private String serverUrl;
+
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        OpenAPI openAPI = new OpenAPI()
+                .info(new Info()
+                        .title("Expense Tracker API")
+                        .version("1.0.0")
+                        .description("API REST para controle de gastos pessoais.\n" +
+                                "            \n" +
+                                "            ## Funcionalidades\n" +
+                                "            - Gerenciamento de usuários e perfis\n" +
+                                "            - Controle de contas bancárias\n" +
+                                "            - Categorização de despesas\n" +
+                                "            - Histórico mensal de gastos\n" +
+                                "            \n" +
+                                "            ## Autenticação\n" +
+                                "            Todos os endpoints, exceto `/auth/**`, requerem Bearer Token JWT\n\n" +
+                                "           ### Como autenticar \n" +
+                                "            - Registre um usuário no endpoint `POST /auth/register`\n" +
+                                "            - Faça login no endpoint `POST /auth/login`\n" +
+                                "            - Copie o token JWT retornado\n" +
+                                "            - Clique em Authorize no Swagger\n" +
+                                "            - Informe: \n" +
+                                "            - Bearer seu-token\n\n"+
+                                "           #### Links\n" +
+                                "             - [GitHub](https://github.com/Antonio-Eduardo)\n" +
+                                "             - [Linkedin](https://www.linkedin.com/in/antonio-eduardo-moreira-oliveira-418828242/)"
+                        )
+                        .contact(new Contact()
+                                .name("Antonio Eduardo")
+                                .email("eduardo.moreira.java@gmail.com")))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
+        if (serverUrl != null && !serverUrl.isEmpty()) {
+            openAPI.addServersItem(new Server().url(serverUrl));
+        }
+
+        return openAPI;
+    }
+}
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/integration/ExpenseTrackerApplicationTests.java ===
+package com.eduardo.expense_tracker.integration;
+
+import com.eduardo.expense_tracker.TestcontainersConfiguration;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@Import(TestcontainersConfiguration.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@WithMockUser
+@ActiveProfiles("test")
+class ExpenseIntegrationTest {
+
+	@Autowired
+	private MockMvc mockMvc;
+
+	@Autowired
+	private ExpenseRepository expenseRepository;
+	@Autowired
+	private CategoryRepository categoryRepository;
+	@Autowired
+	private MonthlyExpenseRepository monthlyExpenseRepository;
+	@Autowired
+	private BankAccountRepository bankAccountRepository;
+
+	private Category category;
+	private MonthlyExpense monthlyExpense;
+	private BankAccount bankAccount;
+
+	@BeforeEach
+	void setup() {
+		expenseRepository.deleteAll();
+		monthlyExpenseRepository.deleteAll();
+		categoryRepository.deleteAll();
+		bankAccountRepository.deleteAll();
+
+		bankAccount = new BankAccount();
+		bankAccount.setTypeAccount("Conta Principal");
+		bankAccount.setBalance(new BigDecimal("5000.00"));
+		bankAccount = bankAccountRepository.save(bankAccount);
+
+		category = new Category();
+		category.setName("Transporte");
+		category = categoryRepository.save(category);
+
+		monthlyExpense = new MonthlyExpense();
+		monthlyExpense.setMonth("Junho");
+		monthlyExpense.setMonthTotal(BigDecimal.ZERO);
+		monthlyExpense.setLimitExpense(new BigDecimal("2000.00"));
+		monthlyExpense.setBankAccount(bankAccount);
+		monthlyExpense = monthlyExpenseRepository.save(monthlyExpense);
+	}
+
+	@Test
+	void deveriaCriarUmaExpense() throws Exception {
+		ExpenseDTOrequest request = new ExpenseDTOrequest();
+		request.setDescription("Uber");
+		request.setAmount(new BigDecimal("35.50"));
+		request.setMonthlyExpenseId(monthlyExpense.getId());
+		request.setCategoryId(category.getId());
+
+		mockMvc.perform(post("/expense/insert")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+                    {"description":"Uber","amount":35.50,"monthlyExpenseId":%d,"categoryId":%d}
+                    """.formatted(monthlyExpense.getId(), category.getId())))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.description").value("Uber"))
+				.andExpect(jsonPath("$.amount").value(35.50))
+				.andExpect(jsonPath("$.monthlyExpenseId").value(monthlyExpense.getId()))
+				.andExpect(jsonPath("$.categoryId").value(category.getId()));
+	}
+
+	@Test
+	void DeveriaRetornarUmaExpensePeloId() throws Exception {
+		var expense = new com.eduardo.expense_tracker.entities.Expense();
+		expense.setDescription("Almoço");
+		expense.setAmount(new BigDecimal("45.00"));
+		expense.setMonthlyExpense(monthlyExpense);
+		expense.setCategory(category);
+		expense = expenseRepository.save(expense);
+
+		mockMvc.perform(get("/expense/{id}", expense.getId()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.description").value("Almoço"))
+				.andExpect(jsonPath("$.amount").value(45.00));
+	}
+
+	@Test
+	void DeveriaRetornarTodasAsExpenses() throws Exception {
+		var expense1 = new Expense();
+		expense1.setDescription("Uber");
+		expense1.setAmount(new BigDecimal("20.00"));
+		expense1.setMonthlyExpense(monthlyExpense);
+		expense1.setCategory(category);
+		expenseRepository.save(expense1);
+
+		var expense2 = new Expense();
+		expense2.setDescription("Táxi");
+		expense2.setAmount(new BigDecimal("40.00"));
+		expense2.setMonthlyExpense(monthlyExpense);
+		expense2.setCategory(category);
+		expenseRepository.save(expense2);
+
+		mockMvc.perform(get("/expense"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(2)));
+	}
+
+	@Test
+	void deveriaDeleterUmaExpense() throws Exception {
+		var expense = new Expense();
+		expense.setDescription("Excluir");
+		expense.setAmount(new BigDecimal("15.00"));
+		expense.setMonthlyExpense(monthlyExpense);
+		expense.setCategory(category);
+		expense = expenseRepository.save(expense);
+
+		mockMvc.perform(delete("/expense/delete/{id}", expense.getId()))
+				.andExpect(status().isNoContent());
+	}
+
+	@Test
+	void DeveriaRetornarNotFoundQuandoExpenseNaoExister() throws Exception {
+		mockMvc.perform(get("/expense/{id}", 9999L))
+				.andExpect(status().isNotFound());
+	}
+}
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/TestcontainersConfiguration.java ===
+package com.eduardo.expense_tracker;
+
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Bean;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
+@TestConfiguration(proxyBeanMethods = false)
+public class TestcontainersConfiguration {
+
+	@Bean
+	@ServiceConnection
+	PostgreSQLContainer postgresContainer() {
+		return new PostgreSQLContainer(DockerImageName.parse("postgres:latest"));
+	}
+
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/TestExpenseTrackerApplication.java ===
+package com.eduardo.expense_tracker;
+
+import org.springframework.boot.SpringApplication;
+
+public class TestExpenseTrackerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.from(ExpenseTrackerApplication::main).with(TestcontainersConfiguration.class).run(args);
+	}
+
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/BankAccountTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.BankAccountDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.BankAccountDTOresponse;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.services.BankAccountService;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class BankAccountTest {
+
+    @Mock
+    private BankAccountRepository bankAccountRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private BankAccountService bankAccountService;
+
+    @Test
+    public void deveriaInserirContaBancaria(){
+        User user = new User();
+        user.setId(1L);
+
+        BankAccountDTOrequest bankAccountDTO = new BankAccountDTOrequest();
+        bankAccountDTO.setTypeAccount("Conta Corrente");
+        bankAccountDTO.setUserId(1L);
+
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setTypeAccount("Conta Corrente");
+        bankAccount.setUser(user);
+
+        when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
+        when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
+
+        BankAccountDTOresponse result = bankAccountService.insertBankAccount(bankAccountDTO);
+
+        assertNotNull(result);
+        assertEquals("Conta Corrente", result.getTypeAccount());
+        verify(bankAccountRepository).save(any(BankAccount.class));
+    }
+    @Test
+    public void deveriaRetornarContaBancarioPeloId(){
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(1L);
+
+        when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
+
+        BankAccountDTOresponse result = bankAccountService.findBankAccountById(bankAccount.getId());
+
+        assertNotNull(result);
+        assertEquals(1L,result.getId());
+
+        verify(bankAccountRepository).findById(any(Long.class));
+    }
+    @Test
+    public void deveriaRetornarTodasAsContasBancarias(){
+        List<BankAccount> bankAccounts = List.of(new BankAccount(), new BankAccount());
+
+        when(bankAccountRepository.findAll()).thenReturn(bankAccounts);
+
+        List<BankAccountDTOresponse> result = bankAccountService.findAllBankAccounts();
+
+        assertNotNull(result);
+        assertEquals(2,result.size());
+
+        verify(bankAccountRepository).findAll();
+    }
+    @Test
+    public void deveriaDeleterUmaContaBancariaPeloId(){
+        bankAccountService.deleteBankAccount(1L);
+
+        verify(bankAccountRepository).deleteById(1L);
+    }
+    @Test
+    public void deveriaAtualizarUmaContaBancariaPeloId(){
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setTypeAccount("antigo");
+        bankAccount.setId(1L);
+
+        BankAccountDTOrequest bankAccountDTOrequest = new BankAccountDTOrequest();
+        bankAccountDTOrequest.setTypeAccount("novo");
+
+        when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
+        when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(bankAccount);
+
+        BankAccountDTOresponse result = bankAccountService.updateBankAccount(bankAccount.getId(),bankAccountDTOrequest);
+
+        assertNotNull(result);
+        assertEquals("novo", result.getTypeAccount());
+
+        verify(bankAccountRepository).findById(any(Long.class));
+        verify(bankAccountRepository).save(any(BankAccount.class));
+
+    }
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/CategoryTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.CategoryDTOresponse;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.repositories.CategoryRepository;
+import com.eduardo.expense_tracker.services.CategoryService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class CategoryTest {
+
+    @Mock
+    private CategoryRepository repository;
+
+    @InjectMocks
+    private CategoryService service;
+
+    @Test
+    public void deveriaCriarUmaCategoria(){
+        CategoryDTOrequest categoryDTOrequest = new CategoryDTOrequest();
+        categoryDTOrequest.setName("Alimentação");
+        Category category = new Category();
+        category.setName(categoryDTOrequest.getName());
+
+        when(repository.save(any(Category.class))).thenReturn(category);
+
+        CategoryDTOresponse savedCategory = service.insertCategory(categoryDTOrequest);
+
+        assertNotNull(savedCategory);
+        assertEquals("Alimentação", savedCategory.getName());
+
+        verify(repository).save(any(Category.class));
+
+    }
+    @Test
+    public void deveriaAcharUmaCategoriaPorId(){
+        Category category = new Category();
+        category.setId(1L);
+        category.setExpenses(new ArrayList<>());
+
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(category));
+
+        CategoryDTOresponse categoryFind = service.findCategoryById(category.getId());
+
+        assertNotNull(categoryFind);
+        assertEquals(1L,categoryFind.getId());
+
+        verify(repository).findById(any(Long.class));
+    }
+
+    @Test
+    public void deveriaAcharTodasAsCategorias(){
+        List<Category> lista = List.of(new Category(), new Category());
+
+        when(repository.findAll()).thenReturn(lista);
+
+        List<CategoryDTOresponse> response = service.findAllCategories();
+
+        assertNotNull(response);
+        assertEquals(2,response.size());
+
+        verify(repository).findAll();
+    }
+
+    @Test
+    public void deveriaDeleterUmaCategoriaPorId(){
+        service.deleteCategory(1L);
+
+        verify(repository).deleteById(1L);
+    }
+
+    @Test
+    public void deveriaAtualizarUmaCategoriaPeloId(){
+        Category category = new Category();
+        category.setId(1L);
+        category.setName("Alimento");
+
+        CategoryDTOrequest categoryDTOrequest = new CategoryDTOrequest();
+        categoryDTOrequest.setName("Novo");
+
+        when(repository.save(any(Category.class))).thenReturn(category);
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(category));
+
+        CategoryDTOresponse categoryDTOresponse = service.updateCategory(category.getId(), categoryDTOrequest);
+
+        assertNotNull(categoryDTOresponse);
+        assertEquals("Novo", categoryDTOresponse.getName());
+
+        verify(repository).save(any(Category.class));
+    }
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/ExpenseTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.CategoryDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.ExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.ExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.Category;
+import com.eduardo.expense_tracker.entities.Expense;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.CategoryRepository;
+import com.eduardo.expense_tracker.repositories.ExpenseRepository;
+import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
+import com.eduardo.expense_tracker.services.ExpenseService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class ExpenseTest {
+
+    @Mock
+    private ExpenseRepository repository;
+
+    @Mock
+    private MonthlyExpenseRepository monthlyExpenseRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @InjectMocks
+    private ExpenseService service;
+
+    @Test
+    public void deveriaCriarUmaDespesa(){
+        Category category = new Category();
+        category.setId(1L);
+
+        MonthlyExpense monthlyExpense = new MonthlyExpense();
+        monthlyExpense.setId(1L);
+
+        Expense expense = new Expense();
+        expense.setDescription("Uber");
+        expense.setMonthlyExpense(monthlyExpense);
+        expense.setCategory(category);
+
+        ExpenseDTOrequest expenseDTOrequest = new ExpenseDTOrequest();
+        expenseDTOrequest.setDescription("Uber");
+        expenseDTOrequest.setMonthlyExpenseId(1L);
+        expenseDTOrequest.setCategoryId(1L);
+
+        when(repository.save(any(Expense.class))).thenReturn(expense);
+        when(monthlyExpenseRepository.findById(any(Long.class))).thenReturn(Optional.of(monthlyExpense));
+        when(categoryRepository.findById(any(Long.class))).thenReturn(Optional.of(category));
+
+        ExpenseDTOresponse dtOresponse = service.insertExpense(expenseDTOrequest);
+
+        assertNotNull(dtOresponse);
+        assertEquals("Uber", dtOresponse.getDescription());
+        assertEquals(1L, dtOresponse.getMonthlyExpenseId());
+
+        verify(repository).save(any(Expense.class));
+    }
+    @Test
+    public void deveriaRetornarUmaDespesaPeloId(){
+            MonthlyExpense monthlyExpense = new MonthlyExpense();
+            monthlyExpense.setId(1L);
+
+            Category category = new Category();
+            category.setId(1L);
+
+            Expense expense = new Expense();
+            expense.setDescription("Uber");
+            expense.setMonthlyExpense(monthlyExpense);
+            expense.setCategory(category);
+
+            ExpenseDTOrequest expenseDTOrequest = new ExpenseDTOrequest();
+            expenseDTOrequest.setDescription("Uber");
+            expenseDTOrequest.setMonthlyExpenseId(1L);
+            expenseDTOrequest.setCategoryId(1L);
+
+            when(monthlyExpenseRepository.findById(1L)).thenReturn(Optional.of(monthlyExpense));
+            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(repository.save(any(Expense.class))).thenReturn(expense);
+
+            ExpenseDTOresponse dtOresponse = service.insertExpense(expenseDTOrequest);
+
+            assertNotNull(dtOresponse);
+            assertEquals("Uber", dtOresponse.getDescription());
+            assertEquals(1L, dtOresponse.getMonthlyExpenseId());
+
+            verify(repository).save(any(Expense.class));
+        }
+
+    @Test
+    public void deveriaRetornarTodasAsDespesas(){
+
+        Category category1 = new Category();
+        category1.setId(1L);
+        Category category2 = new Category();
+        category2.setId(1L);
+
+        MonthlyExpense monthlyExpense = new MonthlyExpense();
+        monthlyExpense.setId(1L);
+        MonthlyExpense monthlyExpense2 = new MonthlyExpense();
+        monthlyExpense.setId(2L);
+
+        List<Expense> expenses = List.of(
+                new Expense(1L, new BigDecimal("10.00"), "Uber", null, monthlyExpense, category1),
+                new Expense(2L, new BigDecimal("24.00"), "Almoço", null, monthlyExpense2, category2)
+        );
+        when(repository.findAll()).thenReturn(expenses);
+
+        List<ExpenseDTOresponse> expenseDTOresponseList = service.findAllExpenses();
+
+        assertNotNull(expenseDTOresponseList);
+        assertEquals(2, expenseDTOresponseList.size());
+        assertEquals("Uber", expenseDTOresponseList.get(0).getDescription());
+        assertEquals("Almoço", expenseDTOresponseList.get(1).getDescription());
+
+        verify(repository).findAll();
+    }
+    @Test
+    public void deveriaDeleterUmaDespesa(){
+        service.deleteExpense(1L);
+
+        verify(repository).deleteById(1L);
+    }
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/LocationTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.LocationDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.LocationDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.MonthlyExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.Location;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.LocationRepository;
+import com.eduardo.expense_tracker.services.LocationService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class LocationTest {
+
+    @Mock
+    private LocationRepository locationRepository;
+
+    @InjectMocks
+    private LocationService locationService;
+
+    @Test
+    public void deveriaCriarUmaLocalizacao(){
+        Location location = new Location();
+        location.setCity("Fortaleza");
+
+        LocationDTOrequest locationDTOrequest = new LocationDTOrequest();
+        locationDTOrequest.setCity(location.getCity());
+        when(locationRepository.save(any(Location.class))).thenReturn(location);
+
+        LocationDTOresponse result = locationService.insertLocation(locationDTOrequest);
+
+        assertNotNull(result);
+        assertEquals("Fortaleza", result.getCity());
+        verify(locationRepository).save(any(Location.class));
+    }
+    @Test
+    public void deveriaAcharUmaLocalizacaoPorId(){
+        Location location = new Location();
+        location.setId(1L);
+
+        when(locationRepository.findById(any(Long.class))).thenReturn(Optional.of(location));
+
+        LocationDTOresponse result = locationService.findLocationById(location.getId());
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        verify(locationRepository).findById(any(Long.class));
+    }
+    @Test
+    public void deveriaDeletarUmaLocalizacaoPorId(){
+        locationService.deleteLocation(1L);
+        verify(locationRepository).deleteById(any(Long.class));
+    }
+    @Test
+    public void deveriaRetornarTodasAsLocalizacoes(){
+        when(locationRepository.findAll()).thenReturn(java.util.List.of(new Location(), new Location()));
+
+        List<LocationDTOresponse> result = locationService.findAllLocations();
+
+        assertEquals(2, result.size());
+        assertNotNull(result);
+        verify(locationRepository).findAll();
+    }
+    @Test
+    public void deveriaAtualizarUmaLocalizacaoPeloId(){
+        Location location = new Location();
+        location.setId(1L);
+        location.setCity("Fortaleza");
+
+        LocationDTOrequest locationDTOrequest = new LocationDTOrequest();
+        locationDTOrequest.setCity("São Paulo");
+
+        when(locationRepository.findById(any(Long.class))).thenReturn(Optional.of(location));
+        when(locationRepository.save(any(Location.class))).thenReturn(location);
+
+        LocationDTOresponse result = locationService.locationUpdate(1L, locationDTOrequest);
+
+        assertNotNull(result);
+        assertEquals("São Paulo", result.getCity());
+        verify(locationRepository).findById(any(Long.class));
+        verify(locationRepository).save(any(Location.class));
+    }
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/MonthlyExpenseTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.MonthlyExpenseDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.MonthlyExpenseDTOresponse;
+import com.eduardo.expense_tracker.entities.BankAccount;
+import com.eduardo.expense_tracker.entities.MonthlyExpense;
+import com.eduardo.expense_tracker.repositories.BankAccountRepository;
+import com.eduardo.expense_tracker.repositories.MonthlyExpenseRepository;
+import com.eduardo.expense_tracker.services.MonthlyExpenseService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class MonthlyExpenseTest {
+
+    @Mock
+    private MonthlyExpenseRepository repository;
+    @Mock
+    private BankAccountRepository bankAccountRepository;
+
+    @InjectMocks
+    private MonthlyExpenseService service;
+
+    @Test
+    public void deveriaInserirUmGastoMensal(){
+
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(1L);
+        MonthlyExpense monthlyExpense = new MonthlyExpense();
+        monthlyExpense.setMonth("Junho");
+        monthlyExpense.setBankAccount(bankAccount);
+
+        MonthlyExpenseDTOrequest monthlyExpenseDTOrequest = new MonthlyExpenseDTOrequest();
+        monthlyExpenseDTOrequest.setMonth("Junho");
+        monthlyExpenseDTOrequest.setBankAccountId(1L);
+
+        when(bankAccountRepository.findById(any(Long.class))).thenReturn(Optional.of(bankAccount));
+        when(repository.save(any(MonthlyExpense.class))).thenReturn(monthlyExpense);
+
+        MonthlyExpenseDTOresponse result = service.insertMonthlyExpense(monthlyExpenseDTOrequest);
+
+        assertNotNull(result);
+        assertEquals("Junho", result.getMonth());
+        assertEquals(1L, result.getBankAccountId());
+
+        verify(repository).save(any(MonthlyExpense.class));
+    }
+    @Test
+    public void deveriaAcharUmaContaPorId(){
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(1L);
+        MonthlyExpense monthlyExpense = new MonthlyExpense();
+        monthlyExpense.setId(1L);
+        monthlyExpense.setBankAccount(bankAccount);
+
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(monthlyExpense));
+
+        MonthlyExpenseDTOresponse result = service.findMonthlyExpenseById(monthlyExpense.getId());
+
+        assertEquals(1L, result.getId());
+        assertNotNull(result);
+        assertEquals(1L, result.getBankAccountId());
+
+        verify(repository).findById(any(Long.class));
+    }
+    @Test
+    public void deveriaDeleterUmaContaPorId(){
+        service.deleteMonthlyExpense(1L);
+
+        verify(repository).deleteById(any(Long.class));
+    }
+    @Test
+    public void deveriaRetornarTodosOsGastosMensais(){
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(1L);
+        MonthlyExpense monthlyExpense1 = new MonthlyExpense();
+        monthlyExpense1.setId(1L);
+        monthlyExpense1.setBankAccount(bankAccount);
+        MonthlyExpense monthlyExpense2 = new MonthlyExpense();
+        monthlyExpense2.setId(2L);
+        monthlyExpense2.setBankAccount(bankAccount);
+
+        when(repository.findAll()).thenReturn(List.of(monthlyExpense1, monthlyExpense2));
+
+        List<MonthlyExpenseDTOresponse> result = service.findAllMonthlyExpenses();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(2L, result.get(1).getId());
+
+        verify(repository).findAll();
+    }
+    @Test
+    public void deveriaAtualizarUmGastoMensal(){
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setId(1L);
+        MonthlyExpense monthlyExpense = new MonthlyExpense();
+        monthlyExpense.setId(1L);
+        monthlyExpense.setLimitExpense(new BigDecimal("1000.00"));
+        monthlyExpense.setBankAccount(bankAccount);
+
+        MonthlyExpenseDTOrequest novoRequest = new MonthlyExpenseDTOrequest();
+        novoRequest.setLimitExpense(new BigDecimal("1500.00"));
+
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(monthlyExpense));
+        when(repository.save(any(MonthlyExpense.class))).thenReturn(monthlyExpense);
+
+        MonthlyExpenseDTOresponse dtOresponse = service.updateMonthlyExpense(monthlyExpense.getId(), novoRequest);
+
+        assertNotNull(dtOresponse);
+        assertEquals(new BigDecimal("1500.00"), dtOresponse.getLimitExpense());
+
+        verify(repository).findById(any(Long.class));
+        verify(repository).save(any(MonthlyExpense.class));
+    }
+}
+
+
+=== ARQUIVO: ./src/test/java/com/eduardo/expense_tracker/unit/service/UserServiceTest.java ===
+package com.eduardo.expense_tracker.unit.service;
+
+import com.eduardo.expense_tracker.dtos.request.RegisterDTOrequest;
+import com.eduardo.expense_tracker.dtos.request.UserDTOrequest;
+import com.eduardo.expense_tracker.dtos.response.RegisterDTOresponse;
+import com.eduardo.expense_tracker.dtos.response.UserDTOresponse;
+import com.eduardo.expense_tracker.entities.user.User;
+import com.eduardo.expense_tracker.entities.user.UserRole;
+import com.eduardo.expense_tracker.repositories.UserRepository;
+import com.eduardo.expense_tracker.services.UserService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private UserService userService;
+
+    @Test
+    public void deveriaAtualizarUmUsuario(){
+        User user = new User();
+        user.setId(1L);
+        user.setName("antigo");
+
+        UserDTOrequest userDTO = new UserDTOrequest();
+        userDTO.setName("novo");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        UserDTOresponse result = userService.updateUser(user.getId(), userDTO);
+
+        assertNotNull(result);
+        assertEquals("novo", result.getName());
+
+        verify(userRepository).findById(user.getId());
+        verify(userRepository).save(any(User.class));
+    }
+    @Test
+    public void deveriaDeletarUmUsuario() {
+        userService.deleteUser(1L);
+
+        verify(userRepository).deleteById(1L);
+    }
+    @Test
+    public void deveriaCriarUmUsuarioComEmailEsenha() {
+        RegisterDTOrequest registerDTO = new RegisterDTOrequest("eduardo@gmail.com", "password", UserRole.USER);
+        User user = new User();
+        user.setEmail(registerDTO.email());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        RegisterDTOresponse result = userService.createUser(registerDTO);
+
+        assertNotNull(result);
+        verify(userRepository).save(any(User.class));
+        assertEquals(registerDTO.email(), result.getEmail());
+    }
+
+    @Test
+    public void deveriaEncontrarUmUsuarioPorEmail(){
+        User user = new User();
+        user.setEmail("eduardo@gmail.com");
+
+        when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+
+        UserDTOresponse result = userService.findByEmail(user.getEmail());
+
+        verify(userRepository).findByEmail(any(String.class));
+        assertNotNull(result);
+        assertEquals(user.getEmail(), result.getEmail());
+    }
+    @Test
+    public void deveriaRetornarTodosOsUsuarios(){
+        List<User> users = List.of(new User(), new User());
+
+        when(userRepository.findAll()).thenReturn(users);
+
+        List<UserDTOresponse> result = userService.userFindAll();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(userRepository).findAll();
+    }
+}
+
+
