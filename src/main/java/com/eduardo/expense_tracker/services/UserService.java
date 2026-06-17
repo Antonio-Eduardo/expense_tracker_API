@@ -20,11 +20,13 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @Autowired
-    UserRepository repository;
+    private final UserRepository repository;
+    private final LocationRepository locationRepository;
 
-    @Autowired
-    private LocationRepository locationRepository;
+    public UserService(UserRepository repository, LocationRepository locationRepository) {
+        this.repository = repository;
+        this.locationRepository = locationRepository;
+    }
 
     public UserDTOresponse userFindById(Long id){
         User user = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(

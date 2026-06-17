@@ -19,8 +19,11 @@ import java.util.Set;
 @Tag(name = "Categories", description = "Operações relacionadas às Categorias")
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryServices;
+    private final CategoryService categoryServices;
+
+    public CategoryController(CategoryService categoryServices) {
+        this.categoryServices = categoryServices;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todas as categorias")

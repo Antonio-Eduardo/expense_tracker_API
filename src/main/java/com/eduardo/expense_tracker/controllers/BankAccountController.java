@@ -21,8 +21,11 @@ import java.util.List;
 @Tag(name = "Bank Accounts", description = "Operações relacionadas às Contas Bancárias")
 public class BankAccountController {
 
-    @Autowired
-    private BankAccountService service;
+    private final BankAccountService service;
+
+    public BankAccountController(BankAccountService service) {
+        this.service = service;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todas as contas bancárias")

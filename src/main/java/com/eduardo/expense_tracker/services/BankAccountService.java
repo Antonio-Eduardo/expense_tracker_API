@@ -17,11 +17,13 @@ import java.util.List;
 @Service
 public class BankAccountService {
 
-    @Autowired
-    private BankAccountRepository repository;
+    private final BankAccountRepository repository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public BankAccountService(BankAccountRepository repository, UserRepository userRepository) {
+        this.repository = repository;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public BankAccountDTOresponse insertBankAccount(BankAccountDTOrequest bankAccount){

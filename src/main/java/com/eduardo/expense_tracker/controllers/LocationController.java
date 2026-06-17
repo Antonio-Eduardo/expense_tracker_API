@@ -18,8 +18,11 @@ import java.util.List;
 @Tag(name = "Locations", description = "Operações relacionadas às Localizações")
 public class LocationController {
 
-    @Autowired
-    private LocationService locationService;
+    private final LocationService locationService;
+
+    public LocationController(LocationService locationService) {
+        this.locationService = locationService;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todas as localizações")

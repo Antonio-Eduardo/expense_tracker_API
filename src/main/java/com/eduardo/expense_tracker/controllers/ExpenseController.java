@@ -20,8 +20,11 @@ import java.util.List;
 @Tag(name = "Expenses", description = "Operações relacionadas às Despesas")
 public class ExpenseController {
 
-    @Autowired
-    private ExpenseService expenseService;
+    private final ExpenseService expenseService;
+
+    public ExpenseController(ExpenseService expenseService) {
+        this.expenseService = expenseService;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todas as despesas")

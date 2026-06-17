@@ -13,8 +13,12 @@ import java.util.List;
 @Service
 public class LocationService {
 
-    @Autowired
-    private LocationRepository repository;
+
+    private final LocationRepository repository;
+
+    public LocationService(LocationRepository repository) {
+        this.repository = repository;
+    }
 
     @Transactional
      public LocationDTOresponse insertLocation(LocationDTOrequest locationDTO){

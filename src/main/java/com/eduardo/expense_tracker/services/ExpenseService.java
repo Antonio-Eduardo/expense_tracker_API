@@ -21,12 +21,15 @@ import java.util.List;
 @Service
 public class ExpenseService {
 
-    @Autowired
-    private ExpenseRepository repository;
-    @Autowired
-    private MonthlyExpenseRepository monthlyExpenseRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final ExpenseRepository repository;
+    private final MonthlyExpenseRepository monthlyExpenseRepository;
+    private final CategoryRepository categoryRepository;
+
+    public ExpenseService(ExpenseRepository repository, MonthlyExpenseRepository monthlyExpenseRepository, CategoryRepository categoryRepository) {
+        this.repository = repository;
+        this.monthlyExpenseRepository = monthlyExpenseRepository;
+        this.categoryRepository = categoryRepository;
+    }
 
     @Transactional
     public ExpenseDTOresponse insertExpense(ExpenseDTOrequest expenseDTO){

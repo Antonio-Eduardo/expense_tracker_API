@@ -18,8 +18,12 @@ import java.util.List;
 @Tag(name = "Users",description = "Operações relacionadas aos Usuários")
 public class UserController {
 
-    @Autowired
-    UserService userService;
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todos os usuários")
