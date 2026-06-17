@@ -66,7 +66,6 @@ public class CategoryService {
                 categoryFind.setName(obj.getName());
             }
         }
-
         @Transactional
         public CategoryDTOresponse updateCategory(Long id, CategoryDTOrequest obj){
             Category categoryFind = repository.findById(id).orElseThrow(
@@ -76,25 +75,10 @@ public class CategoryService {
                return convertToResponseDTO(categoryFind);
         }
     public CategoryDTOresponse convertToResponseDTO(Category category) {
-
         CategoryDTOresponse response = new CategoryDTOresponse();
         response.setId(category.getId());
         response.setName(category.getName());
         response.setNotifyLimit(category.getNotifyLimit());
-        if (category.getExpenses() != null){
-            Set<ExpenseDTOresponse> expenseDTOList = category.getExpenses().stream().map(
-                    expense -> new ExpenseDTOresponse(
-                            expense.getId(),
-                            expense.getAmount(),
-                            expense.getDescription(),
-                            expense.getExpenseMoment(),
-                            expense.getCategory().getId(),
-                            expense.getMonthlyExpense().getId()
-                    )).collect(Collectors.toSet());
-        response.setExpenseDTOS(expenseDTOList);
-    } else {
-            response.setExpenseDTOS(null);
-        }
         return response;
     }
 }
