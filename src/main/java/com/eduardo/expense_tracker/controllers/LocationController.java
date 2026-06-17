@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -43,7 +45,8 @@ public class LocationController {
     @ApiResponse(responseCode = "201", description = "Localização criada com sucesso")
     public ResponseEntity<LocationDTOresponse> insertLocation(@RequestBody LocationDTOrequest data) {
         LocationDTOresponse locationDTO = locationService.insertLocation(data);
-        return ResponseEntity.ok().body(locationDTO);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(locationDTO.getId()).toUri();
+        return ResponseEntity.created(uri).body(locationDTO);
     }
     @PutMapping(value = "/update/{id}")
     @Operation(summary = "Atualiza uma localização")

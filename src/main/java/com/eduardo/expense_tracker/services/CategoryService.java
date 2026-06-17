@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
 
-        private final CategoryRepository repository;
+    private final CategoryRepository repository;
 
     public CategoryService(CategoryRepository repository) {
         this.repository = repository;

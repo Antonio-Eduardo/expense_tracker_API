@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +54,9 @@ public class CategoryController {
     @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados da categoria inválidos")
     public ResponseEntity<CategoryDTOresponse> insertCategory(@RequestBody CategoryDTOrequest category) {
-        return ResponseEntity.ok().body(categoryServices.insertCategory(category));
+        CategoryDTOresponse categoryInsert = categoryServices.insertCategory(category);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(categoryInsert.getId()).toUri();
+        return ResponseEntity.created(uri).body(categoryInsert);
     }
     @DeleteMapping(value = "/delete/{id}")
     @Operation(summary = "Exclui uma categoria")
