@@ -20,8 +20,11 @@ import java.util.List;
 @Tag(name = "Monthly Expenses", description = "Operações relacionadas às Despesas Mensais")
 public class MonthlyExpenseController {
 
-    @Autowired
-    MonthlyExpenseService monthlyExpenseService;
+    private final MonthlyExpenseService monthlyExpenseService;
+
+    public MonthlyExpenseController(MonthlyExpenseService monthlyExpenseService) {
+        this.monthlyExpenseService = monthlyExpenseService;
+    }
 
     @GetMapping
     @Operation(summary = "Lista todas as despesas mensais")

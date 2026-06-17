@@ -32,14 +32,15 @@ import java.net.URI;
 @Tag(name = "Authentication", description = "Operações relacionadas à autenticação de usuários")
 public class AuthenticationController {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private TokenService tokenService;
-    @Autowired
-    private UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
+    private final UserService userService;
+
+    public AuthenticationController(AuthenticationManager authenticationManager, TokenService tokenService, UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+        this.userService = userService;
+    }
 
     @PostMapping("/login")
     @Operation(summary = "Autentica um usuário e retorna um token JWT")

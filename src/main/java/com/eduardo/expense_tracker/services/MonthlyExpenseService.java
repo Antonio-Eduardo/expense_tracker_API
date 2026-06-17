@@ -18,10 +18,13 @@ import java.util.List;
 @Service
 public class MonthlyExpenseService {
 
-    @Autowired
-    MonthlyExpenseRepository repository;
-    @Autowired
-    BankAccountRepository bankAccountRepository;
+    private final MonthlyExpenseRepository repository;
+    private final BankAccountRepository bankAccountRepository;
+
+    public MonthlyExpenseService(MonthlyExpenseRepository repository, BankAccountRepository bankAccountRepository) {
+        this.repository = repository;
+        this.bankAccountRepository = bankAccountRepository;
+    }
 
     @Transactional
     public MonthlyExpenseDTOresponse insertMonthlyExpense(MonthlyExpenseDTOrequest monthlyExpenseDTO){

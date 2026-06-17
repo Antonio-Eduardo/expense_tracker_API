@@ -18,10 +18,14 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryService {
 
-    @Autowired
-        private CategoryRepository repository;
 
-        @Transactional
+    private final CategoryRepository repository;
+
+    public CategoryService(CategoryRepository repository) {
+        this.repository = repository;
+    }
+
+    @Transactional
         public CategoryDTOresponse insertCategory(CategoryDTOrequest categoryDTO){
             Category category = new Category();
             category.setName(categoryDTO.getName());

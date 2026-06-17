@@ -10,5 +10,4 @@ public class CategoryDTOresponse {
     private Long id;
     private BigDecimal notifyLimit;
     private String name;
-    private Set<ExpenseDTOresponse> expenseDTOS;
 }

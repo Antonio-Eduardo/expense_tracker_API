@@ -33,23 +33,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class ExpenseIntegrationTest {
 
-	@Autowired
-	private MockMvc mockMvc;
-
-	@Autowired
-	private ExpenseRepository expenseRepository;
-	@Autowired
-	private CategoryRepository categoryRepository;
-	@Autowired
-	private MonthlyExpenseRepository monthlyExpenseRepository;
-	@Autowired
-	private BankAccountRepository bankAccountRepository;
+	private final MockMvc mockMvc;
+	private final ExpenseRepository expenseRepository;
+	private final CategoryRepository categoryRepository;
+	private final MonthlyExpenseRepository monthlyExpenseRepository;
+	private final BankAccountRepository bankAccountRepository;
 
 	private Category category;
 	private MonthlyExpense monthlyExpense;
 	private BankAccount bankAccount;
 
-	@BeforeEach
+    ExpenseIntegrationTest(MockMvc mockMvc, ExpenseRepository expenseRepository, CategoryRepository categoryRepository, MonthlyExpenseRepository monthlyExpenseRepository, BankAccountRepository bankAccountRepository) {
+        this.mockMvc = mockMvc;
+        this.expenseRepository = expenseRepository;
+        this.categoryRepository = categoryRepository;
+        this.monthlyExpenseRepository = monthlyExpenseRepository;
+        this.bankAccountRepository = bankAccountRepository;
+    }
+
+    @BeforeEach
 	void setup() {
 		expenseRepository.deleteAll();
 		monthlyExpenseRepository.deleteAll();
